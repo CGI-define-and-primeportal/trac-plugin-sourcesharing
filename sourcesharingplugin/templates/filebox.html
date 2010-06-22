@@ -1,0 +1,23 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude">
+  <div id="browser-filebox">
+    <h4>This be ye olde filebox. Yarr!</h4>
+    <form id="filebox-form" action="${href.share()}" method="post">
+      <input name="apa" type="hidden" value="korv"/>
+      <div>
+        <input type="submit" value="Create Directory"/>
+        <input type="submit" value="..."/>
+      </div>
+      <div><label for="filebox-files">Selected files/folders:</label><br/>
+        <select style="width:100%" multiple="multiple" id="filebox-files" name="filebox-files" py:with="files = files or []">
+          <option py:for="file in files" value="file" selected="selected">$file</option> 
+        </select>
+      </div>
+      <div>
+        <input type="submit" value="Delete"/>
+        <input type="submit" value="Send"/>
+      </div>
+    </form>
+  </div>
+</html>
