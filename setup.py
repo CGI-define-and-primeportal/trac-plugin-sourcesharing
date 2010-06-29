@@ -47,5 +47,6 @@ setup(
         'trac.plugins': [
             'sourcesharingplugin = sourcesharingplugin',
         ]    
-    }
+    },
+    test_suite = 'sourcesharingplugin.tests'
 )
