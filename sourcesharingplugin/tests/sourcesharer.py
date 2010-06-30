@@ -5,29 +5,23 @@ Created on 29 Jun 2010
 @author: Pontus Enmark <pontus.enmark@logica.com>
 '''
 
-from trac.test import EnvironmentStub
+from trac.test import TestCaseSetup
 from sourcesharingplugin.sourcesharer import SharingSystem
 from pkg_resources import resource_listdir, resource_filename
-from trac.tests.notification import SMTPThreadedServer, SMTPServerStore,\
-    parse_smtp_message
+from trac.tests.notification import parse_smtp_message
 import sourcesharingplugin
 import unittest
 import os
+from sourcesharingplugin.tests import SmtpTestSuite
 
-class SharingSystemTest(unittest.TestCase):
-
+class SharingSystemTest(TestCaseSetup):
+    
+    def setFixture(self, fixture):
+        # Load data set in SmtpTestSuite fixture
+        self.env, self.server = fixture
+    
     def setUp(self):
-        # Set up test smptserver
-        smtp_port = 2525
-        self.server = SMTPThreadedServer(port=smtp_port)
-        self.server.start()
-        # Set up environment
-        env = EnvironmentStub(enable=['trac.*', 'announcer.*', 'sourcesharingplugin.*'])
-        if sourcesharingplugin.sourcesharer.using_announcer:
-            env.config.set('smtp', 'port', smtp_port)
-        else:
-            env.config.set('notifications', 'smpt_port', smtp_port)
-        self.sharingsys = SharingSystem(env)
+        self.sharingsys = SharingSystem(self.env)
         dir = resource_filename(sourcesharingplugin.__name__, 'htdocs')
         self.files = [os.path.join(dir, f) for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))] 
     
@@ -53,7 +47,7 @@ class SharingSystemTest(unittest.TestCase):
         assert 'söme'.decode('utf-8') in headers['Subject'], headers
 
 def suite():
-    return unittest.makeSuite(SharingSystemTest, 'test')
+    return unittest.makeSuite(SharingSystemTest, suiteClass=SmtpTestSuite)
 
 if __name__ == '__main__':
     unittest.main(defaultTest='suite')
