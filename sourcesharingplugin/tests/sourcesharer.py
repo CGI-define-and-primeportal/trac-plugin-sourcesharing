@@ -4,36 +4,46 @@ Created on 29 Jun 2010
 
 @author: Pontus Enmark <pontus.enmark@logica.com>
 '''
-
-from trac.test import TestCaseSetup
+from trac.test import EnvironmentStub
 from sourcesharingplugin.sourcesharer import SharingSystem
 from pkg_resources import resource_listdir, resource_filename
-from trac.tests.notification import parse_smtp_message
+from trac.tests.notification import parse_smtp_message, SMTPThreadedServer
 import sourcesharingplugin
-import unittest
 import os
-from sourcesharingplugin.tests import SmtpTestSuite
+import unittest
 
-class SharingSystemTest(TestCaseSetup):
-    
-    def setFixture(self, fixture):
-        # Load data set in SmtpTestSuite fixture
-        self.env, self.server = fixture
-    
-    def setUp(self):
-        self.sharingsys = SharingSystem(self.env)
-        dir = resource_filename(sourcesharingplugin.__name__, 'htdocs')
-        self.files = [os.path.join(dir, f) for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))] 
-    
-    def tearDown(self):
-        self.env = None
-        self.server.stop()
-        
-    def test_01_send_mail(self):
+smtp_port = 2525
+
+def start_server(smtp_port):
+    server = SMTPThreadedServer(port=smtp_port)
+    server.start()
+    return server
+
+def pytest_funcarg__server(request):
+    return request.cached_setup(
+        setup=lambda: start_server(smtp_port),
+        teardown=lambda server: server.stop(),
+        scope='module'
+    )
+
+def pytest_funcarg__sharesys(request):
+    # Set up environment
+    env = EnvironmentStub(enable=['trac.*', 'announcer.*', 'sourcesharingplugin.*'])
+    if sourcesharingplugin.sourcesharer.using_announcer:
+        env.config.set('smtp', 'port', smtp_port)
+    else:
+        env.config.set('notifications', 'smtp_port', smtp_port)
+    ss = SharingSystem(env)
+    return ss
+
+class TestSharingSystem:
+    def test_send_mail(self, server, sharesys):
+        dir = resource_filename(__name__, os.path.join('..', 'htdocs'))
+        files = [os.path.join(dir, f) for f in os.listdir(dir)]
         subject = 'Sending söme files'
         body = 'Here you go (Här får du)'
         b64body = body.encode('base64').strip() 
-        mail = self.sharingsys.send_as_email(('Pöntus Enmärk', 
+        mail = sharesys.send_as_email(('Pöntus Enmärk', 
                                               'pontus.enmark@logica.com'), 
                                               [('Pontus Enmark', 
                                                 'pontus.enmark@logica.com'),
@@ -41,13 +51,10 @@ class SharingSystemTest(TestCaseSetup):
                                                 'pontus.enmark@gmail.com')], 
                                                 subject,
                                                 body,
-                                                *self.files)
-        headers, sent_body = parse_smtp_message(self.server.store.message)
+                                                *files)
+        headers, sent_body = parse_smtp_message(server.store.message)
         assert  b64body in sent_body, (b64body, sent_body)
         assert 'söme'.decode('utf-8') in headers['Subject'], headers
+        assert os.path.basename(files[0]) in sent_body
 
-def suite():
-    return unittest.makeSuite(SharingSystemTest, suiteClass=SmtpTestSuite)
 
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
