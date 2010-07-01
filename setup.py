@@ -27,7 +27,17 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
 
-from setuptools import find_packages, setup
+from setuptools import find_packages, setup, Command
+
+class PyTest(Command):
+    user_options = []
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+    def run(self):
+        import py
+        py.cmdline.pytest(py.std.sys.argv[2:])
 
 setup(
     name = 'SourceSharingPlugin', 
@@ -48,5 +58,5 @@ setup(
             'sourcesharingplugin = sourcesharingplugin',
         ]    
     },
-    test_suite = 'sourcesharingplugin.tests'
+    cmdclass = {'test': PyTest},
 )
