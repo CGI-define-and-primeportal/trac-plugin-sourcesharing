@@ -116,6 +116,7 @@ class SharingSystem(Component):
         if req.method == 'GET' and filename == 'browser.html':
             add_stylesheet(req, 'sourcesharer/filebox.css')
             add_javascript(req, 'sourcesharer/filebox.js')
+            add_javascript(req, 'sourcesharer/share.js')
             tmpl = TemplateLoader(self.get_templates_dirs()).load('filebox.html')
             filebox = tmpl.generate(href=req.href, files=[])
             # Wrap and float dirlist table, add filebox div 
@@ -136,13 +137,6 @@ class SharingSystem(Component):
     def process_request(self, req):
         if req.method == 'POST':
             files = req.args.get('filebox-files')
-            if not files:
-                add_warning('No files selected')
-                req.redirect(req.href.browser())
-            if not "send" in req.args:
-                Chrome(self.env).add_wiki_toolbars(req)
-                add_javascript(req, 'sourcesharer/share.js')
-                return 'share.html', dict(req=req, files=files), None
         req.redirect(req.href.browser())
     
     def match_request(self, req):
@@ -157,4 +151,4 @@ class SharingSystem(Component):
     #IAutoCompleteUser
     
     def get_templates(self):
-        return {'share.html': ['#user']}
+        return {'browser.html': ['#user']}

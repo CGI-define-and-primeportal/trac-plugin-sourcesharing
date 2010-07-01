@@ -12,38 +12,78 @@ import sourcesharingplugin
 import os
 import unittest
 
-smtp_port = 2525
+# py.test
+#smtp_port = 2525
+#
+#def start_server(smtp_port):
+#    server = SMTPThreadedServer(port=smtp_port)
+#    server.start()
+#    return server
+#
+#def pytest_funcarg__server(request):
+#    return request.cached_setup(
+#        setup=lambda: start_server(smtp_port),
+#        teardown=lambda server: server.stop(),
+#        scope='module'
+#    )
+#
+#def pytest_funcarg__sharesys(request):
+#    # Set up environment
+#    env = EnvironmentStub(enable=['trac.*', 'announcer.*', 'sourcesharingplugin.*'])
+#    if sourcesharingplugin.sourcesharer.using_announcer:
+#        env.config.set('smtp', 'port', smtp_port)
+#    else:
+#        env.config.set('notifications', 'smtp_port', smtp_port)
+#    ss = SharingSystem(env)
+#    return ss
+#
+#class TestSharingSystem:
+#    def test_send_mail(self, server, sharesys):
+#        dir = resource_filename(__name__, os.path.join('..', 'htdocs'))
+#        files = [os.path.join(dir, f) for f in os.listdir(dir)]
+#        subject = 'Sending söme files'
+#        body = 'Here you go (Här får du)'
+#        b64body = body.encode('base64').strip() 
+#        mail = sharesys.send_as_email(('Pöntus Enmärk', 
+#                                              'pontus.enmark@logica.com'), 
+#                                              [('Pontus Enmark', 
+#                                                'pontus.enmark@logica.com'),
+#                                               ('Pöntus Enmärk',
+#                                                'pontus.enmark@gmail.com')], 
+#                                                subject,
+#                                                body,
+#                                                *files)
+#        headers, sent_body = parse_smtp_message(server.store.message)
+#        assert  b64body in sent_body, (b64body, sent_body)
+#        assert 'söme'.decode('utf-8') in headers['Subject'], headers
+#        assert os.path.basename(files[0]) in sent_body
 
-def start_server(smtp_port):
-    server = SMTPThreadedServer(port=smtp_port)
-    server.start()
-    return server
-
-def pytest_funcarg__server(request):
-    return request.cached_setup(
-        setup=lambda: start_server(smtp_port),
-        teardown=lambda server: server.stop(),
-        scope='module'
-    )
-
-def pytest_funcarg__sharesys(request):
-    # Set up environment
-    env = EnvironmentStub(enable=['trac.*', 'announcer.*', 'sourcesharingplugin.*'])
-    if sourcesharingplugin.sourcesharer.using_announcer:
-        env.config.set('smtp', 'port', smtp_port)
-    else:
-        env.config.set('notifications', 'smtp_port', smtp_port)
-    ss = SharingSystem(env)
-    return ss
-
-class TestSharingSystem:
-    def test_send_mail(self, server, sharesys):
+# nose
+class SharingSystemTestCase(unittest.TestCase):
+    @classmethod
+    def setupClass(cls):
+        cls.server = SMTPThreadedServer(port=2525)
+        cls.server.start()
+        env = EnvironmentStub(enable=['trac.*', 'announcer.*', 'sourcesharingplugin.*'])
+        if sourcesharingplugin.sourcesharer.using_announcer:
+            env.config.set('smtp', 'port', cls.server.port)
+        else:
+            env.config.set('notifications', 'smtp_port', cls.server.port)
+        cls.env = env
+    @classmethod
+    def teardownClass(cls):
+        cls.server.stop()
+    def setUp(self):
+        self.sharesys = SharingSystem(self.env)
+    def tearDown(self):
+        self.sharesys = None
+    def test_send_mail(self):
         dir = resource_filename(__name__, os.path.join('..', 'htdocs'))
         files = [os.path.join(dir, f) for f in os.listdir(dir)]
         subject = 'Sending söme files'
         body = 'Here you go (Här får du)'
         b64body = body.encode('base64').strip() 
-        mail = sharesys.send_as_email(('Pöntus Enmärk', 
+        mail = self.sharesys.send_as_email(('Pöntus Enmärk', 
                                               'pontus.enmark@logica.com'), 
                                               [('Pontus Enmark', 
                                                 'pontus.enmark@logica.com'),
@@ -52,9 +92,7 @@ class TestSharingSystem:
                                                 subject,
                                                 body,
                                                 *files)
-        headers, sent_body = parse_smtp_message(server.store.message)
+        headers, sent_body = parse_smtp_message(self.server.store.message)
         assert  b64body in sent_body, (b64body, sent_body)
         assert 'söme'.decode('utf-8') in headers['Subject'], headers
         assert os.path.basename(files[0]) in sent_body
-
-

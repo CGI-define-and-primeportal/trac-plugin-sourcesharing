@@ -1,13 +1,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/"
-      xmlns:xi="http://www.w3.org/2001/XInclude">
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      py:strip="">
   <div id="browser-filebox">
-    <h4>This be ye olde filebox. Yarr!</h4>
     <form id="filebox-form" action="${href.share()}" method="post">
       <input name="apa" type="hidden" value="korv"/>
       <div>
-        <input type="submit" value="Create Directory"/>
-        <input type="submit" value="..."/>
+        <input type="submit" value="+ Create directory"/>
+        <input type="submit" value="+ Upload file(s)"/>
       </div>
       <div><label for="filebox-files">Selected files/folders:</label><br/>
         <select style="width:100%" multiple="multiple" id="filebox-files" name="filebox-files" py:with="files = files or []">
@@ -15,9 +15,32 @@
         </select>
       </div>
       <div>
-        <input type="submit" value="Delete"/>
-        <input type="submit" value="Send"/>
+        <input type="submit" id="delete" value="Delete"/>
+        <input type="submit" id="send" value="Send"/>
+      </div>
+      <div id="sourcesharer" style="display:none">
+        <div>
+          <select id="user" name="user">
+            <option value="">Select user(s)</option>
+          </select>
+        </div>
+        To:
+        <div id="selected-users"></div>
+        <div style="clear:left"></div>
+        <div>
+          <label for="subject">Subject:</label><br/>
+          <input type="text" name="subject" id="subject"/>
+        </div>
+        <div>
+          <label for="subject">Message:</label><br/>
+          <textarea name="message" style="width:100%;height:10em"></textarea>
+        </div>
+        <div>
+            <input type="submit" id="do_send" value="Send"/>
+            <input type="submit" id="cancel" value="Cancel"/>
+        </div>
       </div>
     </form>
   </div>
+
 </html>
