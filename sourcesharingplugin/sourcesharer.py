@@ -3,25 +3,22 @@ Created on 17 Jun 2010
 
 @author: enmarkp
 '''
-from trac.core import Component, ExtensionPoint, implements
-from api import ISharable
+from trac.core import Component, implements
 from trac.web.api import ITemplateStreamFilter, IRequestHandler
 from trac.web.chrome import ITemplateProvider, add_stylesheet, add_javascript,\
     add_warning, Chrome
-from pkg_resources import resource_filename #@UnresolvedImport
+from trac.mimeview.api import Mimeview
+from pkg_resources import resource_filename
 from genshi.template.loader import TemplateLoader
 from genshi.filters.transform import Transformer
 from genshi.builder import tag
-from genshi.core import Markup
-import re
 from trac.perm import IPermissionRequestor
-from email.utils import formataddr, COMMASPACE, formatdate
+from email.Utils import formataddr, formatdate
 from email.mime.multipart import MIMEMultipart
-from trac.mimeview.api import Mimeview
-import os
 from email.mime.base import MIMEBase
 from email import encoders
 from email.mime.text import MIMEText
+import os
 
 try:
     # Prefer announcer interface
@@ -89,6 +86,7 @@ class SharingSystem(Component):
             if not mtype:
                 mtype = 'application/octet-stream'
             if '; charset=' in mtype:
+                # What to use encoding for?
                 mtype, encoding = mtype.split('; charset=', 1)
             maintype, subtype = mtype.split('/', 1)
             part = MIMEBase(maintype, subtype)
