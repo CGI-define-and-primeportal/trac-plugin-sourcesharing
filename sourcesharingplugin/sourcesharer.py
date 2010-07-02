@@ -5,19 +5,18 @@ Created on 17 Jun 2010
 '''
 from trac.core import Component, implements
 from trac.web.api import ITemplateStreamFilter, IRequestHandler
-from trac.web.chrome import ITemplateProvider, add_stylesheet, add_javascript,\
-    add_warning, Chrome
+from trac.web.chrome import ITemplateProvider, add_stylesheet, add_javascript
 from trac.mimeview.api import Mimeview
+from trac.perm import IPermissionRequestor
 from pkg_resources import resource_filename
 from genshi.template.loader import TemplateLoader
 from genshi.filters.transform import Transformer
 from genshi.builder import tag
-from trac.perm import IPermissionRequestor
 from email.Utils import formataddr, formatdate
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
-from email.mime.text import MIMEText
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEBase import MIMEBase
+from email.Encoders import encode_base64
+from email.MIMEText import MIMEText
 import os
 
 try:
@@ -28,7 +27,7 @@ try:
 except ImportError:
     from trac.notification import NotificationSystem as Distributor
     from trac.notification import MAXHEADERLEN
-    from email.header import Header
+    from email.Header import Header
     using_announcer = False
     # copy set_header from announcer plugin
     def set_header(message, key, value, charset=None):
@@ -93,7 +92,7 @@ class SharingSystem(Component):
             part.set_payload(content)
             part.add_header('content-disposition', 'attachment',
                             filename=os.path.basename(f))
-            encoders.encode_base64(part)
+            encode_base64(part)
             root.attach(part)
         for k, v in headers.items():
             set_header(root, k, v, 'utf-8')
