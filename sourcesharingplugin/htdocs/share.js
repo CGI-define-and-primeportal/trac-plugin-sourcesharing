@@ -1,5 +1,5 @@
 jQuery(function($){
-  $('#user').live('change', function(e){
+  $('#user-select').live('change', function(e){
     var mailto = $(this).val()
     if (!mailto) {
       return

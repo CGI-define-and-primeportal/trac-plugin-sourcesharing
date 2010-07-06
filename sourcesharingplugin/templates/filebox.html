@@ -4,7 +4,7 @@
       py:strip="">
   <div id="browser-filebox">
     <form id="filebox-form" action="${href.share()}" method="post">
-      <input name="apa" type="hidden" value="korv"/>
+      <input name="repository" type="hidden" value="${reponame}"/>
       <div>
         <input type="submit" value="+ Create directory"/>
         <input type="submit" value="+ Upload file(s)"/>
@@ -20,7 +20,7 @@
       </div>
       <div id="sourcesharer" style="display:none">
         <div>
-          <select id="user" name="user">
+          <select id="user-select" name="user-select">
             <option value="">Select user(s)</option>
           </select>
         </div>
@@ -33,7 +33,7 @@
         </div>
         <div>
           <label for="subject">Message:</label><br/>
-          <textarea name="message" style="width:100%;height:10em"></textarea>
+          <textarea name="message" id="message" style="width:100%;height:10em"></textarea>
         </div>
         <div>
             <input type="submit" id="do_send" value="Send"/>
