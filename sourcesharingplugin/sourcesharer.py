@@ -4,25 +4,36 @@ Created on 17 Jun 2010
 @author: enmarkp
 '''
 from trac.core import Component, implements, TracError
-from trac.web.api import ITemplateStreamFilter, IRequestHandler, RequestDone
+from trac.web.api import ITemplateStreamFilter, IRequestHandler
 from trac.web.chrome import ITemplateProvider, add_stylesheet, add_javascript
 from trac.mimeview.api import Mimeview, Context
 from trac.perm import IPermissionRequestor
-from pkg_resources import resource_filename
-from genshi.template.loader import TemplateLoader
-from genshi.filters.transform import Transformer
-from genshi.builder import tag
-from email.Utils import formataddr, formatdate
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEBase import MIMEBase
-from email.Encoders import encode_base64
-from email.MIMEText import MIMEText
-import os
 from trac.web.session import DetachedSession
 from trac.resource import Resource
 from trac.versioncontrol.api import RepositoryManager
 from trac.util.translation import _
 from trac.util.presentation import to_json
+from trac.util.text import to_unicode
+from pkg_resources import resource_filename
+from genshi.template.loader import TemplateLoader
+from genshi.filters.transform import Transformer
+from genshi.builder import tag
+try:
+    from email.utils import formataddr, formatdate
+    from email.mime.base import MIMEBase
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+    from email.encoders import encode_base64
+    from email.charset import Charset, QP, BASE64, SHORTEST
+except ImportError:
+    # Python 2.4
+    from email.Utils import formataddr, formatdate
+    from email.MIMEMultipart import MIMEMultipart
+    from email.MIMEBase import MIMEBase
+    from email.Encoders import encode_base64
+    from email.MIMEText import MIMEText
+    from email.Charset import Charset, QP, BASE64, SHORTEST
+import os
 
 try:
     # Prefer announcer interface
