@@ -14,12 +14,14 @@ import unittest
 from trac.web.tests.chrome import Request
 from trac.resource import Resource
 from trac.web.href import Href
+from trac.util.text import to_unicode
 
 class SharingSystemTestCase(unittest.TestCase):
     @classmethod
     def setupClass(cls):
-        cls.server = SMTPThreadedServer(port=2525)
+        cls.server = SMTPThreadedServer(port=2526)
         cls.server.start()
+        
         env = EnvironmentStub(enable=['trac.*', 'announcer.*', 'sourcesharingplugin.*'])
         if sourcesharingplugin.sourcesharer.using_announcer:
             env.config.set('smtp', 'port', cls.server.port)
@@ -45,10 +47,20 @@ class SharingSystemTestCase(unittest.TestCase):
     def test_send_mail(self):
         dir = resource_filename(__name__, os.path.join('..', 'htdocs'))
         files = [os.path.join(dir, f) for f in os.listdir(dir)]
-        subject = 'Sending söme files'
-        body = 'Here you go (Här får du)'
-        b64body = body.encode('base64').strip() 
-        mail = self.sharesys.send_as_email(('Pöntus Enmärk', 
+        subjects = ('Re: åäö', 
+                    u'Re: åäö',
+                    'Re: ascii',
+                    )
+        bodies = ('Here you gö (Här får du)',
+                  u'Here you gö (Här får du)',
+                  'Ascii body',
+                  )
+        for subject in subjects:
+            for body in bodies:
+                body = to_unicode(body)
+                subject = to_unicode(subject)
+                b64body = body.encode('utf-8').encode('base64').strip()
+                mail = self.sharesys.send_as_email(('Pöntus Enmärk', 
                                               'pontus.enmark@logica.com'), 
                                               [('Pontus Enmark', 
                                                 'pontus.enmark@logica.com'),
@@ -57,7 +69,7 @@ class SharingSystemTestCase(unittest.TestCase):
                                                 subject,
                                                 body,
                                                 *files)
-        headers, sent_body = parse_smtp_message(self.server.get_message())
-        assert  b64body in sent_body, (b64body, sent_body)
-        assert 'söme'.decode('utf-8') in headers['Subject'], headers
-        assert os.path.basename(files[0]) in sent_body
+                headers, sent_body = parse_smtp_message(self.server.get_message())
+                assert  b64body in sent_body, (b64body, sent_body)
+                assert subject == headers['Subject'], headers
+                assert os.path.basename(files[0]) in sent_body

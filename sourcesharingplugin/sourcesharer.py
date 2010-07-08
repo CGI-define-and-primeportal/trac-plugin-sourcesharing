@@ -63,8 +63,6 @@ except:
 __all__ = ['SharingSystem', 'Distributor','using_announcer']
 
 
-
-
 class SharingSystem(Component):
     
     implements(ITemplateStreamFilter, ITemplateProvider, IRequestHandler,
@@ -91,7 +89,8 @@ class SharingSystem(Component):
         headers['To'] = ', '.join(recp)
         headers['From'] = from_addr
         headers['Date'] = formatdate()
-        root.attach(MIMEText(text.encode('utf-8'), _charset='utf-8'))
+        msg = MIMEText(to_unicode(text).encode('utf-8'), 'plain', 'utf-8')
+        root.attach(msg)
         mimeview = Mimeview(self.env)
         for r in resources:
             if hasattr(r, 'realm'):
@@ -112,11 +111,11 @@ class SharingSystem(Component):
                     f = r.name
                     content = r.read()
                 mtype = mimeview.get_mimetype(f, content)
-                if not mtype:
-                    mtype = 'application/octet-stream'
-                if '; charset=' in mtype:
-                    # What to use encoding for?
-                    mtype, encoding = mtype.split('; charset=', 1)
+            if not mtype:
+                mtype = 'application/octet-stream'
+            if '; charset=' in mtype:
+                # What to use encoding for?
+                mtype, encoding = mtype.split('; charset=', 1)
             maintype, subtype = mtype.split('/', 1)
             part = MIMEBase(maintype, subtype)
             part.set_payload(content)
@@ -124,9 +123,9 @@ class SharingSystem(Component):
                             filename=os.path.basename(f))
             encode_base64(part)
             root.attach(part)
+        del root['Content-Transfer-Encoding']
         for k, v in headers.items():
             set_header(root, k, v, 'utf-8')
-        del root['Content-Transfer-Encoding']
         email = (from_addr, recp, root.as_string())
         self.log.debug('Sending mail from %s to %s', from_addr, recp)
         if using_announcer:
@@ -225,7 +224,7 @@ class SharingSystem(Component):
         real_name = sess.get('name') or sess.sid
         address = sess.get('email')
         if not address:
-            raise TracError(_('User %s(user) has no email address set', 
+            raise ValueError(_('User %s(user) has no email address set', 
                               user=sess.sid))
         return real_name, address
 
