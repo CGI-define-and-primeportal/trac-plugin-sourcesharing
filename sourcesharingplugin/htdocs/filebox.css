@@ -4,3 +4,9 @@
 #browser-filebox h4 {
   margin-top: 0;
 }
+#filebox-notice, #filebox-errors {
+  margin: 1em;
+  padding: 1ex;
+  border-radius: 7px;
+  -moz-border-radius: 7px;
+}

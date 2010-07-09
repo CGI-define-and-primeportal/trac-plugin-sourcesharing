@@ -37,6 +37,7 @@ jQuery(function($){
     // Hide the "send file" extra form options
     $('#sourcesharer').slideUp()
     $('#send').attr('disabled', false)
+    $('#filebox-notice').fadeOut()
   })
   // Override the normal http form post ("normal" posting isn't handled yet)
   $('#filebox-form').submit(function(e){return false})
@@ -44,34 +45,39 @@ jQuery(function($){
   $('#do_send').click(function(e){
     // Grab data
     var btn = $(this).attr('disabled', true)
-    if (!$('input[@name="user"]').val()) {
-      alert('No recipients selected')
-      return false
-    } else if (!$('#filebox-files').val()) {
+    if (!$('#filebox-files').val()) {
       alert('No files selected')
+      btn.attr('disabled', false)
+      return false
+    } else if (!$('input[name="user"]').val()) {
+      alert('No recipients selected')
+      btn.attr('disabled', false)
       return false
     }
     var fields = $('#filebox-form').serializeArray()
-    
     // Send it
     $.ajax({
       url: $('#filebox-form').attr('action'),
       type: 'POST',
       data: $.param(fields),
       success: function(data, textStatus, xhr){
-        alert(textStatus + '\n' + data)
         btn.attr('disabled', false)
         // Clear form
         $('#subject, #message').val('')
         $('#selected-users').empty()
         // Hide send files form
-        $('#cancel').trigger('click')
-        return false
+        $('#sourcesharer').slideUp()
+        $('#send').attr('disabled', false)
+        if (data.files.length && data.recipients.length) {
+          $('#filebox-notice').text('Sent ' + data.files.join(', ') + ' to: ' + data.recipients.join(', ')).fadeIn()
+        }
+        if (data.failures.length) {
+          $('#filebox-errors').text('Errors: ' + data.failures.join(', ')).fadeIn()
+        }
       },
       error: function(xhr, textStatus, errorThrown) {
-        alert('Failed! response: ' + xhr.responseText + '\nerror:' + errorThrown)
+        $('#filebox-errors').text('Errors: ' + xhr.responseText).fadeIn()
         btn.attr('disabled', false)
-        return false
       }
     })
   })

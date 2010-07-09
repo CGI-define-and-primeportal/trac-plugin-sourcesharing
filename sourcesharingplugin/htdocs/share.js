@@ -4,7 +4,9 @@ jQuery(function($){
     if (!mailto) {
       return
     }
-    var i = $('<div style="border:1px dotted #ddd;padding:3px;float:left;margin:2px;cursor:pointer">').text(mailto).click(function(e){$(this).remove()})
+    var i = $('<div style="border:1px dotted #ddd;padding:3px;float:left;margin:2px;cursor:pointer">')
+    i.text(mailto).click(function(e){$(this).remove()})
+    i.attr('title', 'Click to remove')
     i.append($('<input type="hidden" name="user"/>').val(mailto))
     i.append($('<span style="color:red;cursor:pointer"> x </span>'))
     $('#selected-users').append(i)

@@ -5,7 +5,8 @@ Created on 17 Jun 2010
 '''
 from trac.core import Component, implements, TracError
 from trac.web.api import ITemplateStreamFilter, IRequestHandler
-from trac.web.chrome import ITemplateProvider, add_stylesheet, add_javascript
+from trac.web.chrome import ITemplateProvider, add_stylesheet, add_javascript,\
+    add_warning
 from trac.mimeview.api import Mimeview, Context
 from trac.perm import IPermissionRequestor
 from trac.web.session import DetachedSession
@@ -18,6 +19,8 @@ from pkg_resources import resource_filename
 from genshi.template.loader import TemplateLoader
 from genshi.filters.transform import Transformer
 from genshi.builder import tag
+import re
+from trac.notification import EMAIL_LOOKALIKE_PATTERN
 try:
     from email.utils import formataddr, formatdate
     from email.mime.base import MIMEBase
@@ -128,13 +131,16 @@ class SharingSystem(Component):
             set_header(root, k, v, 'utf-8')
         email = (from_addr, recp, root.as_string())
         self.log.debug('Sending mail from %s to %s', from_addr, recp)
-        if using_announcer:
-            if mailsys.use_threaded_delivery:
-                mailsys.get_delivery_queue().put(email)
+        try:
+            if using_announcer:
+                if mailsys.use_threaded_delivery:
+                    mailsys.get_delivery_queue().put(email)
+                else:
+                    mailsys.send(*email)
             else:
-                mailsys.send(*email)
-        else:
-            mailsys.send_email(*email)
+                mailsys.send_email(*email)
+        except Exception, e:
+            raise TracError(e.message)
         return email # for testing/debugging purposes
 
     # ITemplateStreamFilter methods
@@ -179,10 +185,9 @@ class SharingSystem(Component):
             failures = []
             for u in users:
                 try:
-                    # TODO: handle manually typed addresses ((.*?)? <?xx@yyy.zz>?)
                     address = self._get_address_info(u)
                 except Exception, e:
-                    failures.append(e.message)
+                    failures.append(str(e))
                     continue
                 recipients.append(address)
             for f in files:
@@ -192,15 +197,19 @@ class SharingSystem(Component):
                                                        parent=repo.resource,
                                                        path=f)
                 except Exception, e:
-                    failures.append(e.message)
+                    failures.append(str(e))
                     continue
                 to_send.append(file_res)
             sender = self._get_address_info(req.authname)
             self.send_as_email(sender, recipients, subject, message, *to_send)
+            response = dict(files=files, recipients=[x[1] for x in recipients],
+                            failures=failures)
+            self.log.debug(response)
             if failures != []:
-                req.send(to_json(failures), 'text/json', 400)
-            req.send('')
-        req.redirect(req.href.browser())
+                msg = ", ".join(failures)
+                add_warning(req, msg)
+                self.log.error('Failures in source sharing: %s', msg)
+            req.send(to_json(response), 'text/json')
     
     def match_request(self, req):
         if req.path_info == '/share':
@@ -220,12 +229,22 @@ class SharingSystem(Component):
     
     def _get_address_info(self, authname):
         "TODO: check env.get_known_users"
+        # First check if it's a #define user
         sess = DetachedSession(self.env, authname)
-        real_name = sess.get('name') or sess.sid
         address = sess.get('email')
+        real_name = None
         if not address:
-            raise ValueError(_('User %s(user) has no email address set', 
-                              user=sess.sid))
+            # Otherwise check if it's a valid email address
+            real_name, address = self.parse_address(authname)
+            if not address:
+                if not sess.get('email'):
+                    raise ValueError(_('User %(user)s has no email address set', 
+                                       user=authname))
+                else:
+                    raise ValueError(_('%(address)s is not a valid email address', 
+                                       address=address))
+        if not real_name:
+            real_name = sess.get('name')
         return real_name, address
 
     def _get_file_resource(self, req, realm, parent, path):
@@ -236,3 +255,12 @@ class SharingSystem(Component):
         ctx = Context.from_request(req, file_res)
         ctx.perm.require('FILE_VIEW')
         return file_res
+    
+    def parse_address(self, s):
+        if not s:
+            return None, None
+        emailfmt = re.compile(r'^\s*(?:"?(.*?)"?\s+)?<?(%s)>?\s*$' % EMAIL_LOOKALIKE_PATTERN)
+        m = emailfmt.search(s)
+        if m:
+            return m.group(1), m.group(2)
+        return None, None
