@@ -6,7 +6,7 @@ Created on 17 Jun 2010
 from trac.core import Component, implements, TracError
 from trac.web.api import ITemplateStreamFilter, IRequestHandler
 from trac.web.chrome import ITemplateProvider, add_stylesheet, add_javascript,\
-    add_warning
+    add_warning, add_notice
 from trac.mimeview.api import Mimeview, Context
 from trac.perm import IPermissionRequestor
 from trac.web.session import DetachedSession
@@ -209,7 +209,13 @@ class SharingSystem(Component):
                 msg = ", ".join(failures)
                 add_warning(req, msg)
                 self.log.error('Failures in source sharing: %s', msg)
-            req.send(to_json(response), 'text/json')
+            if 'XMLHttpRequest' == req.get_header('X-Requested-With'):
+                req.send(to_json(response), 'text/json')
+            else:
+                add_notice(req, _("Sent %(files)s to %(recipients)s", 
+                             files=', '.join(files),
+                             recipients=', '.join([x[1] for x in recipients])))
+                req.redirect()
     
     def match_request(self, req):
         if req.path_info == '/share':
