@@ -6,8 +6,8 @@
     <form id="filebox-form" action="${href.share()}" method="post">
       <input name="repository" type="hidden" value="${reponame}"/>
       <div>
-        <input type="submit" value="+ Create directory"/>
-        <input type="submit" value="+ Upload file(s)"/>
+        <input type="submit" id="mkdir" value="+ Create directory"/>
+        <input type="submit" id="upload" value="+ Upload file(s)"/>
       </div>
       <div><label for="filebox-files">Selected files/folders:</label><br/>
         <select style="width:100%" multiple="multiple" id="filebox-files" name="filebox-files" py:with="files = files or []">

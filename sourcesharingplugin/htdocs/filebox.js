@@ -39,6 +39,8 @@ jQuery(function($){
     $('#send').attr('disabled', false)
     $('#filebox-notice').fadeOut()
   })
+  // Disable unimplemented buttons
+  $('#delete, #mkdir, #upload').click(function(e){ alert('Not implemented yet'); return false })
   // Override the normal http form post ("normal" posting isn't handled yet)
   $('#filebox-form').submit(function(e){return false})
   // Send the files
