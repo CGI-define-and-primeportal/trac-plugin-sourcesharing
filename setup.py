@@ -1,3 +1,5 @@
+# coding: utf-8
+#
 # Copyright (c) 2010, Logica
 # 
 # All rights reserved.
@@ -29,16 +31,6 @@
 
 from setuptools import find_packages, setup, Command
 
-class PyTest(Command):
-    user_options = []
-    def initialize_options(self):
-        pass
-    def finalize_options(self):
-        pass
-    def run(self):
-        import py
-        py.cmdline.pytest(py.std.sys.argv[2:])
-
 setup(
     name = 'SourceSharingPlugin', 
     version = '0.0',
@@ -46,17 +38,17 @@ setup(
     author_email = 'pontus.enmark@logica.com',
     description = "Share files from the source browser via e-mail or other means.",
     license = "Copyright (c) 2010, Logica. All rights reserved. Released under the 3-clause BSD license.",
-    url = "http://define4.trac.uk.logica.com",
+    url = "http://d4.planetdefine.net",
     packages = ['sourcesharingplugin'],
     package_data = {'sourcesharingplugin' : ['htdocs/*.js',
                                              'htdocs/*.css',
                                              'templates/*.html']}, 
-    install_requires = [
-    ],
+    install_requires = ['ContextMenuPlugin', 'AutoCompletePlugin'],
     entry_points = {
         'trac.plugins': [
             'sourcesharingplugin = sourcesharingplugin',
         ]    
     },
-    cmdclass = {'test': PyTest},
+    tests_require = ['nose'],
+    test_suite = 'nose.collector',
 )

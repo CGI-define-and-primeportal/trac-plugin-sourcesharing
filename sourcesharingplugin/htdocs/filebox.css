@@ -1,6 +1,3 @@
-#browser-filebox {
-  
-}
 #browser-filebox h4 {
   margin-top: 0;
 }
@@ -9,4 +6,16 @@
   padding: 1ex;
   border-radius: 7px;
   -moz-border-radius: 7px;
+}
+#right {
+  display: none;
+}
+#left.shrunk { 
+  float: left; 
+  width: 100%;
+}
+#right.grown { 
+  float: left; 
+  width: 20%;
+  margin-left: 5px;
 }

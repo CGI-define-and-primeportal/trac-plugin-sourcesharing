@@ -5,17 +5,12 @@
   <div id="browser-filebox">
     <form id="filebox-form" action="${href.share()}" method="post">
       <input name="repository" type="hidden" value="${reponame}"/>
-      <div>
-        <input type="submit" id="mkdir" value="+ Create directory"/>
-        <input type="submit" id="upload" value="+ Upload file(s)"/>
-      </div>
       <div><label for="filebox-files">Selected files/folders:</label><br/>
         <select style="width:100%" multiple="multiple" id="filebox-files" name="filebox-files" py:with="files = files or []">
           <option py:for="file in files" value="file" selected="selected">$file</option> 
         </select>
       </div>
       <div>
-        <input type="submit" id="delete" value="Delete"/>
         <input type="submit" id="send" value="Send"/>
       </div>
       <div id="filebox-notice" class="message" style="display:none">

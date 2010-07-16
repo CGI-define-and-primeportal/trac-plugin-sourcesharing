@@ -1,3 +1,34 @@
+# coding: utf-8
+#
+# Copyright (c) 2010, Logica
+# 
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# 
+#     * Redistributions of source code must retain the above copyright 
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of the <ORGANIZATION> nor the names of its
+#       contributors may be used to endorse or promote products derived from
+#       this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# ----------------------------------------------------------------------------
+
 '''
 Created on 17 Jun 2010
 
@@ -7,7 +38,7 @@ from trac.core import Component, implements, TracError
 from trac.web.api import ITemplateStreamFilter, IRequestHandler
 from trac.web.chrome import ITemplateProvider, add_stylesheet, add_javascript,\
     add_warning, add_notice
-from trac.mimeview.api import Mimeview, Context
+from trac.mimeview.api import Mimeview
 from trac.perm import IPermissionRequestor
 from trac.web.session import DetachedSession
 from trac.resource import Resource
@@ -58,10 +89,8 @@ except ImportError:
         else:
             message[key] = value
         return message
-try:
-    from autocompleteplugin.api import IAutoCompleteUser
-except:
-    IAutoCompleteUser = None
+
+from autocompleteplugin.api import IAutoCompleteUser
 
 __all__ = ['SharingSystem', 'Distributor','using_announcer']
 
@@ -100,6 +129,7 @@ class SharingSystem(Component):
                 if r.realm == 'source':
                     repo = RepositoryManager(self.env).get_repository(r.parent.id)
                     n = repo.get_node(r.id, rev=r.version)
+                    # TODO handle when the user selected a directory
                     content = n.get_content().read()
                     f = os.path.join(repo.repos.path, n.path)
                     mtype = n.get_content_type() or mimeview.get_mimetype(f, content)
@@ -146,16 +176,21 @@ class SharingSystem(Component):
     # ITemplateStreamFilter methods
     
     def filter_stream(self, req, method, filename, stream, data):
-        if req.method == 'GET' and filename == 'browser.html':
+        if filename == 'browser.html' and req.method == 'GET':
+
+            # TODO check that contextmenu's InternalNameHolder is enabled, as our js needs it?
             add_stylesheet(req, 'sourcesharer/filebox.css')
             add_javascript(req, 'sourcesharer/filebox.js')
             add_javascript(req, 'sourcesharer/share.js')
             # Render the filebox template for stream insertion
+
+            # TODO introduce a new interface to allow putting extra buttons into this filebox?
             tmpl = TemplateLoader(self.get_templates_dirs()).load('filebox.html')
             filebox = tmpl.generate(href=req.href, reponame=data['reponame'] or '', files=[])
-            # Wrap and float dirlist table, add filebox div 
-            stream |= Transformer('//table[@id="dirlist"]').wrap(tag.div(id="outer",style="clear:both")).wrap(tag.div(id="left", style="float:left; width:79%"))
-            stream |= Transformer('//div[@id="outer"]').append(tag.div(filebox, id="right", style="float:left; width:20%;margin-left:5px"))
+            # Wrap and float dirlist table, add filebox div
+            # TODO change the id names, left/right seems a bit generic to assume we can have to ourselves
+            stream |= Transformer('//table[@id="dirlist"]').wrap(tag.div(id="outer",style="clear:both")).wrap(tag.div(id="left"))
+            stream |= Transformer('//div[@id="outer"]').append(tag.div(filebox, id="right"))
         return stream
     
     # ITemplateProvider methods
@@ -257,16 +292,16 @@ class SharingSystem(Component):
         """Should raise if path doesn't exist or user has insufficient perms
         TODO: handle attachments and other sendable resources
         """
+        req.perm.require('FILE_VIEW')        
         file_res = Resource(realm, path, parent=parent)
-        ctx = Context.from_request(req, file_res)
-        ctx.perm.require('FILE_VIEW')
         return file_res
-    
+
+    _emailfmt = re.compile(r'^\s*(?:"?(.*?)"?\s+)?<?(%s)>?\s*$' % EMAIL_LOOKALIKE_PATTERN)
+
     def parse_address(self, s):
         if not s:
             return None, None
-        emailfmt = re.compile(r'^\s*(?:"?(.*?)"?\s+)?<?(%s)>?\s*$' % EMAIL_LOOKALIKE_PATTERN)
-        m = emailfmt.search(s)
+        m = self._emailfmt.search(s)
         if m:
             return m.group(1), m.group(2)
         return None, None

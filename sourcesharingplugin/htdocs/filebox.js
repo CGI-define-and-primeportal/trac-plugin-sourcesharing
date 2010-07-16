@@ -2,9 +2,14 @@ jQuery(function($){
   // The list of files is "live" (may be updated with ajax), so we need to
   // use the live bind to attach to updated rows.
   $('#dirlist .fileselect').live('click', function(e){
+    if (! $('#left').hasClass('shrunk')) {
+      $('#left').addClass('shrunk').animate({width: '79%'},1000,function() {
+        $('#right').addClass('grown').fadeIn('slow');
+      });
+    };
     var sel = $('#filebox-files')
     var cb = $(this)
-    // Read the filename from a hidden span set in stream in sourcesharer 
+    // Read the filename from a hidden span set in stream in contextmenuplugin
     var link = cb.closest('tr').find('td.name span.filenameholder')
     var href = link.text()
     // Add/remove filenames from the filebox when checkboxes change
