@@ -160,7 +160,7 @@ class SharingSystem(Component):
         for k, v in headers.items():
             set_header(root, k, v, 'utf-8')
         email = (from_addr, recp, root.as_string())
-        self.log.debug('Sending mail from %s to %s', from_addr, recp)
+        self.log.info('Sending mail with items %s from %s to %s', resources, from_addr, recp)
         try:
             if using_announcer:
                 if mailsys.use_threaded_delivery:
