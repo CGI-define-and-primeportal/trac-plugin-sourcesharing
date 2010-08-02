@@ -34,7 +34,14 @@ Created on 17 Jun 2010
 
 @author: enmarkp
 '''
+from trac.config import Option
+from trac.web.chrome import Chrome
 from trac.core import Component, implements, TracError
+from trac.test import Mock, MockPerm
+from trac.web.href import Href
+from trac.mimeview import Context
+from trac.wiki.formatter import HtmlFormatter
+from genshi.template import MarkupTemplate
 from trac.web.api import ITemplateStreamFilter, IRequestHandler
 from trac.web.chrome import ITemplateProvider, add_stylesheet, add_javascript,\
     add_warning, add_notice
@@ -45,7 +52,7 @@ from trac.resource import Resource
 from trac.versioncontrol.api import RepositoryManager
 from trac.util.translation import _
 from trac.util.presentation import to_json
-from trac.util.text import to_unicode
+from trac.util.text import to_unicode, exception_to_unicode
 from pkg_resources import resource_filename
 from genshi.template.loader import TemplateLoader
 from genshi.filters.transform import Transformer
@@ -101,9 +108,23 @@ class SharingSystem(Component):
                IPermissionRequestor, IAutoCompleteUser)
     
     distributor = Distributor
+    mime_encoding = Option('announcer', 'mime_encoding', 'base64',
+        """Specifies the MIME encoding scheme for emails.
+
+        Valid options are 'base64' for Base64 encoding, 'qp' for
+        Quoted-Printable, and 'none' for no encoding. Note that the no encoding
+        means that non-ASCII characters in text are going to cause problems
+        with notifications.
+        """)
     
-    def send_as_email(self, sender, recipients, subject, text, *resources):
+    html_template_name = Option('sourcesharer', 
+                                'email_html_template_name', 
+                                'sourcesharer_email.html',
+                                doc="""Filename of genshi template to use for HTML mails with file attachments.""")
+    
+    def send_as_email(self, authname, sender, recipients, subject, text, *resources):
         """
+        `authname` Trac username of sender
         `sender` Tuple of (real name, email address)
         `recipients` List of (real name, email address) recipient address tuples
         `subject` The e-mail subject
@@ -114,14 +135,16 @@ class SharingSystem(Component):
         mailsys = self.distributor(self.env)
         from_addr = formataddr(sender)
         root = MIMEMultipart('related')
-        root.set_charset('utf-8')
+        root.set_charset(self._make_charset())
+        root.preamble = 'This is a multi-part message in MIME format.'
         headers = {}
         recp = [formataddr(r) for r in recipients]
         headers['Subject'] = subject
         headers['To'] = ', '.join(recp)
         headers['From'] = from_addr
         headers['Date'] = formatdate()
-        msg = MIMEText(to_unicode(text).encode('utf-8'), 'plain', 'utf-8')
+        body = self._format_email(authname, sender, recipients, subject, text, *resources)
+        msg = MIMEText(body, 'html')
         root.attach(msg)
         mimeview = Mimeview(self.env)
         for r in resources:
@@ -139,6 +162,7 @@ class SharingSystem(Component):
                         self.log.warn('Not a valid path: %s', r)
                         continue
                     f = r
+                    # TODO doesn't this allow people to read any file? Ask Pontus what was intended
                     content = open(f, 'rb').read()
                 elif isinstance(r, file):
                     f = r.name
@@ -172,6 +196,75 @@ class SharingSystem(Component):
         except Exception, e:
             raise TracError(e.message)
         return email # for testing/debugging purposes
+
+    def _format_email(self, authname, sender, recipients, subject, text, *resources):
+
+        if text:
+            req = Mock(
+                href=Href(self.env.abs_href()),
+                abs_href=self.env.abs_href,
+                authname=authname,
+                perm=MockPerm(),
+                chrome=dict(
+                    warnings=[],
+                    notices=[]
+                    ),
+                args={}
+                )
+            context = Context.from_request(req)
+            formatter = HtmlFormatter(self.env, context, text)
+            try:
+                htmlmessage = formatter.generate(True)
+            except Exception, e:
+                self.log.error("Failed to render %s", repr(text))
+                self.log.error(exception_to_unicode(e, traceback=True))
+                htmlmessage = text
+        else:
+            htmlmessage = "No message supplied."
+        data = {'sendername': sender[0],
+                'senderaddress': sender[1],
+                'comment': htmlmessage,
+                'attachments': resources,
+                'project_name': self.env.project_name,
+                'project_desc': self.env.project_description,
+                'project_link': self.env.project_url or self.env.abs_href()}
+
+        chrome = Chrome(self.env)
+        dirs = []
+        for provider in chrome.template_providers:
+            dirs += provider.get_templates_dirs()
+        templates = TemplateLoader(dirs, variable_lookup='lenient')
+        template = templates.load(self.html_template_name, 
+                cls=MarkupTemplate)
+        if template:
+            stream = template.generate(**data)
+            output = stream.render()
+        return output
+
+    def _make_charset(self):
+        charset = Charset()
+        charset.input_charset = 'utf-8'
+        pref = self.mime_encoding.lower()
+        if pref == 'base64':
+            charset.header_encoding = BASE64
+            charset.body_encoding = BASE64
+            charset.output_charset = 'utf-8'
+            charset.input_codec = 'utf-8'
+            charset.output_codec = 'utf-8'
+        elif pref in ['qp', 'quoted-printable']:
+            charset.header_encoding = QP
+            charset.body_encoding = QP
+            charset.output_charset = 'utf-8'
+            charset.input_codec = 'utf-8'
+            charset.output_codec = 'utf-8'
+        elif pref == 'none':
+            charset.header_encoding = None
+            charset.body_encoding = None
+            charset.input_codec = None
+            charset.output_charset = 'ascii'
+        else:
+            raise TracError(_('Invalid email encoding setting: %s' % pref))
+        return charset
 
     # ITemplateStreamFilter methods
     
@@ -236,7 +329,7 @@ class SharingSystem(Component):
                     continue
                 to_send.append(file_res)
             sender = self._get_address_info(req.authname)
-            self.send_as_email(sender, recipients, subject, message, *to_send)
+            self.send_as_email(req.authname, sender, recipients, subject, message, *to_send)
             response = dict(files=files, recipients=[x[1] for x in recipients],
                             failures=failures)
             self.log.debug(response)
