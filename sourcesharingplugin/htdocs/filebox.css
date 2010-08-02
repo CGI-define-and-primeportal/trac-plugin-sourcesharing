@@ -17,5 +17,6 @@
 #right.grown { 
   float: left; 
   width: 20%;
-  margin-left: 5px;
+  margin: 5px;
+  background: white none repeat scroll 0 0;
 }

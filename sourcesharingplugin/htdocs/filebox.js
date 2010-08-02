@@ -3,7 +3,7 @@ jQuery(function($){
   // use the live bind to attach to updated rows.
   $('#dirlist .fileselect').live('click', function(e){
     if (! $('#left').hasClass('shrunk')) {
-      $('#left').addClass('shrunk').animate({width: '79%'},1000,function() {
+      $('#left').addClass('shrunk').animate({width: '75%'},1000,function() {
         $('#right').addClass('grown').fadeIn('slow');
       });
     };
