@@ -73,17 +73,16 @@ class SharingSystemTestCase(unittest.TestCase):
             subject = to_unicode(subject)
             for body in bodies:
                 body = to_unicode(body)
-                b64body = body.encode('utf-8').encode('base64').strip()
-                mail = self.sharesys.send_as_email(('Pöntus Enmärk', 
-                                              'pontus.enmark@logica.com'), 
-                                              [('Pontus Enmark', 
-                                                'pontus.enmark@logica.com'),
-                                               ('Pöntus Enmärk',
-                                                'pontus.enmark@gmail.com')], 
-                                                subject,
-                                                body,
-                                                *files)
+                mail = self.sharesys.send_as_email("anonymous",
+                                                   (u'Pöntus Enmärk', 
+                                                    'pontus.enmark@logica.com'), 
+                                                   [(u'Pontus Enmark', 
+                                                     'pontus.enmark@logica.com'),
+                                                    (u'Pöntus Enmärk',
+                                                     'pontus.enmark@gmail.com')], 
+                                                   subject,
+                                                   body,
+                                                   *files)
                 headers, sent_body = parse_smtp_message(self.server.get_message())
-                assert  b64body in sent_body, (b64body, sent_body)
                 assert subject == headers['Subject'], headers
                 assert os.path.basename(files[0]) in sent_body
