@@ -357,7 +357,7 @@ class SharingSystem(Component):
     #IAutoCompleteUser
     
     def get_templates(self):
-        return {'browser.html': ['#user-select']}
+        return {'browser.html': [('#user-select', 'select', {})]}
 
     # Other
     
