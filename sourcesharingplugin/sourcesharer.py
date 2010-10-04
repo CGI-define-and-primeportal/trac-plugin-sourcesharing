@@ -1,13 +1,13 @@
 # coding: utf-8
 #
 # Copyright (c) 2010, Logica
-# 
+#
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
-#     * Redistributions of source code must retain the above copyright 
+#
+#     * Redistributions of source code must retain the above copyright
 #       notice, this list of conditions and the following disclaimer.
 #     * Redistributions in binary form must reproduce the above copyright
 #       notice, this list of conditions and the following disclaimer in the
@@ -15,7 +15,7 @@
 #     * Neither the name of the <ORGANIZATION> nor the names of its
 #       contributors may be used to endorse or promote products derived from
 #       this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 # LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -103,10 +103,10 @@ __all__ = ['SharingSystem', 'Distributor','using_announcer']
 
 
 class SharingSystem(Component):
-    
+
     implements(ITemplateStreamFilter, ITemplateProvider, IRequestHandler,
                IPermissionRequestor, IAutoCompleteUser)
-    
+
     distributor = Distributor
     mime_encoding = Option('announcer', 'mime_encoding', 'base64',
         """Specifies the MIME encoding scheme for emails.
@@ -116,12 +116,12 @@ class SharingSystem(Component):
         means that non-ASCII characters in text are going to cause problems
         with notifications.
         """)
-    
-    html_template_name = Option('sourcesharer', 
-                                'email_html_template_name', 
+
+    html_template_name = Option('sourcesharer',
+                                'email_html_template_name',
                                 'sourcesharer_email.html',
                                 doc="""Filename of genshi template to use for HTML mails with file attachments.""")
-    
+
     def send_as_email(self, authname, sender, recipients, subject, text, *resources):
         """
         `authname` Trac username of sender
@@ -234,7 +234,7 @@ class SharingSystem(Component):
         for provider in chrome.template_providers:
             dirs += provider.get_templates_dirs()
         templates = TemplateLoader(dirs, variable_lookup='lenient')
-        template = templates.load(self.html_template_name, 
+        template = templates.load(self.html_template_name,
                 cls=MarkupTemplate)
         if template:
             stream = template.generate(**data)
@@ -267,7 +267,7 @@ class SharingSystem(Component):
         return charset
 
     # ITemplateStreamFilter methods
-    
+
     def filter_stream(self, req, method, filename, stream, data):
         if filename == 'browser.html' and req.method == 'GET':
 
@@ -285,17 +285,17 @@ class SharingSystem(Component):
             stream |= Transformer('//table[@id="dirlist"]').wrap(tag.div(id="outer",style="clear:both")).wrap(tag.div(id="left"))
             stream |= Transformer('//div[@id="outer"]').append(tag.div(filebox, id="right"))
         return stream
-    
+
     # ITemplateProvider methods
-    
+
     def get_htdocs_dirs(self):
         return [('sourcesharer', resource_filename(__name__, 'htdocs'))]
-    
+
     def get_templates_dirs(self):
         return [resource_filename(__name__, 'templates')]
-    
+
     # IRequestHandler methods
-    
+
     def process_request(self, req):
         if req.method == 'POST':
             files =   req.args.get('filebox-files')
@@ -340,27 +340,27 @@ class SharingSystem(Component):
             if 'XMLHttpRequest' == req.get_header('X-Requested-With'):
                 req.send(to_json(response), 'text/json')
             else:
-                add_notice(req, _("Sent %(files)s to %(recipients)s", 
+                add_notice(req, _("Sent %(files)s to %(recipients)s",
                              files=', '.join(files),
                              recipients=', '.join([x[1] for x in recipients])))
                 req.redirect()
-    
+
     def match_request(self, req):
         if req.path_info == '/share':
             return True
-    
+
     # IPermissionRequestor methods
 
     def get_permission_actions(self):
         return ['BROWSER_VIEW', 'FILE_VIEW']
 
     #IAutoCompleteUser
-    
+
     def get_templates(self):
         return {'browser.html': [('#user-select', 'select', {})]}
 
     # Other
-    
+
     def _get_address_info(self, authname):
         "TODO: check env.get_known_users"
         # First check if it's a #define user
@@ -372,10 +372,10 @@ class SharingSystem(Component):
             real_name, address = self.parse_address(authname)
             if not address:
                 if not sess.get('email'):
-                    raise ValueError(_('User %(user)s has no email address set', 
+                    raise ValueError(_('User %(user)s has no email address set',
                                        user=authname))
                 else:
-                    raise ValueError(_('%(address)s is not a valid email address', 
+                    raise ValueError(_('%(address)s is not a valid email address',
                                        address=address))
         if not real_name:
             real_name = sess.get('name')
@@ -385,7 +385,7 @@ class SharingSystem(Component):
         """Should raise if path doesn't exist or user has insufficient perms
         TODO: handle attachments and other sendable resources
         """
-        req.perm.require('FILE_VIEW')        
+        req.perm.require('FILE_VIEW')
         file_res = Resource(realm, path, parent=parent)
         return file_res
 
