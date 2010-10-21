@@ -297,53 +297,55 @@ class SharingSystem(Component):
     # IRequestHandler methods
 
     def process_request(self, req):
-        if req.method == 'POST':
-            files =   req.args.get('filebox-files')
-            if not isinstance(files, list):
-                files = [files]
-            users =   req.args.get('user')
-            if not isinstance(users, list):
-                users = [users]
-            subject = req.args.get('subject')
-            message = req.args.get('message')
-            reponame = req.args.get('repository')
-            repo = RepositoryManager(self.env).get_repository(reponame)
-            recipients = []
-            to_send = []
-            failures = []
-            for u in users:
-                try:
-                    address = self._get_address_info(u)
-                except Exception, e:
-                    failures.append(str(e))
-                    continue
-                recipients.append(address)
-            for f in files:
-                # TODO: add ?rev=xxx and select correct version
-                try:
-                    file_res = self._get_file_resource(req, realm='source',
-                                                       parent=repo.resource,
-                                                       path=f)
-                except Exception, e:
-                    failures.append(str(e))
-                    continue
-                to_send.append(file_res)
-            sender = self._get_address_info(req.authname)
-            self.send_as_email(req.authname, sender, recipients, subject, message, *to_send)
-            response = dict(files=files, recipients=[x[1] for x in recipients],
-                            failures=failures)
-            self.log.debug(response)
-            if failures != []:
-                msg = ", ".join(failures)
-                add_warning(req, msg)
-                self.log.error('Failures in source sharing: %s', msg)
-            if 'XMLHttpRequest' == req.get_header('X-Requested-With'):
-                req.send(to_json(response), 'text/json')
-            else:
-                add_notice(req, _("Sent %(files)s to %(recipients)s",
-                             files=', '.join(files),
-                             recipients=', '.join([x[1] for x in recipients])))
-                req.redirect()
+        if req.method != 'POST':
+            raise TracError(_("Only POST is supported"))
+
+        files =   req.args.get('filebox-files')
+        if not isinstance(files, list):
+            files = [files]
+        users =   req.args.get('user')
+        if not isinstance(users, list):
+            users = [users]
+        subject = req.args.get('subject')
+        message = req.args.get('message')
+        reponame = req.args.get('repository')
+        repo = RepositoryManager(self.env).get_repository(reponame)
+        recipients = []
+        to_send = []
+        failures = []
+        for u in users:
+            try:
+                address = self._get_address_info(u)
+            except Exception, e:
+                failures.append(str(e))
+                continue
+            recipients.append(address)
+        for f in files:
+            # TODO: add ?rev=xxx and select correct version
+            try:
+                file_res = self._get_file_resource(req, realm='source',
+                                                   parent=repo.resource,
+                                                   path=f)
+            except Exception, e:
+                failures.append(str(e))
+                continue
+            to_send.append(file_res)
+        sender = self._get_address_info(req.authname)
+        self.send_as_email(req.authname, sender, recipients, subject, message, *to_send)
+        response = dict(files=files, recipients=[x[1] for x in recipients],
+                        failures=failures)
+        self.log.debug(response)
+        if failures != []:
+            msg = ", ".join(failures)
+            add_warning(req, msg)
+            self.log.error('Failures in source sharing: %s', msg)
+        if 'XMLHttpRequest' == req.get_header('X-Requested-With'):
+            req.send(to_json(response), 'text/json')
+        else:
+            add_notice(req, _("Sent %(files)s to %(recipients)s",
+                         files=', '.join(files),
+                         recipients=', '.join([x[1] for x in recipients])))
+            req.redirect()
 
     def match_request(self, req):
         if req.path_info == '/share':
