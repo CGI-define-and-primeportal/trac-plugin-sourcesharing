@@ -348,8 +348,7 @@ class SharingSystem(Component):
             req.redirect()
 
     def match_request(self, req):
-        if req.path_info == '/share':
-            return True
+        return req.path_info == '/share'
 
     # IPermissionRequestor methods
 
