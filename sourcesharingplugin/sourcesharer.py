@@ -147,27 +147,22 @@ class SharingSystem(Component):
         msg = MIMEText(body, 'html')
         root.attach(msg)
         mimeview = Mimeview(self.env)
+        files = []
         for r in resources:
-            if hasattr(r, 'realm'):
-                if r.realm == 'source':
-                    repo = RepositoryManager(self.env).get_repository(r.parent.id)
-                    n = repo.get_node(r.id, rev=r.version)
-                    # TODO handle when the user selected a directory
-                    content = n.get_content().read()
-                    f = os.path.join(repo.repos.path, n.path)
-                    mtype = n.get_content_type() or mimeview.get_mimetype(f, content)
-            else:
-                if isinstance(r, basestring):
-                    if not os.path.isfile(r):
-                        self.log.warn('Not a valid path: %s', r)
-                        continue
-                    f = r
-                    # TODO doesn't this allow people to read any file? Ask Pontus what was intended
-                    content = open(f, 'rb').read()
-                elif isinstance(r, file):
-                    f = r.name
-                    content = r.read()
-                mtype = mimeview.get_mimetype(f, content)
+            if not hasattr(r, 'realm') or r.realm != 'source':
+                continue
+
+            repo = RepositoryManager(self.env).get_repository(r.parent.id)
+            n = repo.get_node(r.id, rev=r.version)
+
+            if not n.isfile:
+                continue
+
+            content = n.get_content().read()
+            f = os.path.join(repo.repos.path, n.path)
+            mtype = n.get_content_type() or mimeview.get_mimetype(f, content)
+            files.append(n.path)
+
             if not mtype:
                 mtype = 'application/octet-stream'
             if '; charset=' in mtype:
@@ -195,7 +190,8 @@ class SharingSystem(Component):
                 mailsys.send_email(*email)
         except Exception, e:
             raise TracError(e.message)
-        return email # for testing/debugging purposes
+
+        return files
 
     def _format_email(self, authname, sender, recipients, subject, text, *resources):
 
@@ -331,7 +327,7 @@ class SharingSystem(Component):
                 continue
             to_send.append(file_res)
         sender = self._get_address_info(req.authname)
-        self.send_as_email(req.authname, sender, recipients, subject, message, *to_send)
+        files = self.send_as_email(req.authname, sender, recipients, subject, message, *to_send)
         response = dict(files=files, recipients=[x[1] for x in recipients],
                         failures=failures)
         self.log.debug(response)
