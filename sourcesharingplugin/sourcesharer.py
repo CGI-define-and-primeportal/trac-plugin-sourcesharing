@@ -150,13 +150,13 @@ class SharingSystem(Component):
         files = []
         for r in resources:
             if not hasattr(r, 'realm') or r.realm != 'source':
-                continue
+                raise TypeError("Resources must have the 'realm' attribute")
 
             repo = RepositoryManager(self.env).get_repository(r.parent.id)
             n = repo.get_node(r.id, rev=r.version)
 
             if not n.isfile:
-                continue
+                raise TypeError("Resources must be files")
 
             content = n.get_content().read()
             f = os.path.join(repo.repos.path, n.path)
@@ -327,7 +327,11 @@ class SharingSystem(Component):
                 continue
             to_send.append(file_res)
         sender = self._get_address_info(req.authname)
-        files = self.send_as_email(req.authname, sender, recipients, subject, message, *to_send)
+        try:
+            files = self.send_as_email(req.authname, sender, recipients, subject, message, *to_send)
+        except TypeError, e:
+            files = []
+            failures.append(str(e))
         response = dict(files=files, recipients=[x[1] for x in recipients],
                         failures=failures)
         self.log.debug(response)
