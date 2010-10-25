@@ -38,7 +38,7 @@ jQuery(function($){
         send_enabled = true;
         if (item.text.match(/\[dir\]$/)) {
           send_enabled = false;
-          break;
+          return;
         }
       });
       send.attr('disabled', !send_enabled);
