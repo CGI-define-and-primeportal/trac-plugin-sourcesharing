@@ -32,13 +32,16 @@ jQuery(function($){
     } else {
       // Find the option and remove it
       sel.children('option[value="' + href + '"]').remove()
-      var dir_count = 0
+      var send_enabled = false;
+
       sel.children().each(function (idx, item) {
-        if (item.text.match(/\[dir\]$/))
-          dir_count += 1;
+        send_enabled = true;
+        if (item.text.match(/\[dir\]$/)) {
+          send_enabled = false;
+          break;
+        }
       });
-      if (dir_count == 0)
-        send.attr('disabled', false);
+      send.attr('disabled', !send_enabled);
     }
   })
   // Handle send button
