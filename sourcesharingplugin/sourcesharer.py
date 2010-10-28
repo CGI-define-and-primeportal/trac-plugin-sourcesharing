@@ -322,6 +322,7 @@ class SharingSystem(Component):
                 file_res = self._get_file_resource(req, realm='source',
                                                    parent=repo.resource,
                                                    path=f)
+                # req.perm(file_res).require('BROWSER_VIEW') for the perm check maybe?
             except Exception, e:
                 failures.append(str(e))
                 continue
