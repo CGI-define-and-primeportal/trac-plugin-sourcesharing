@@ -7,19 +7,22 @@ jQuery(function($){
         $('#right').addClass('grown').fadeIn('slow');
       });
     };
-    var sel = $('#filebox-files')
-    var cb = $(this)
+    var sel = $('#filebox-files'),
+        cb = $(this),
     // Read the filename from a hidden span set in stream in contextmenuplugin
-    var link = cb.closest('tr').find('td.name span.filenameholder')
-    var href = link.text()
+        link = cb.closest('tr').find('td.name span.filenameholder'),
+        href = link.text(),
+        send = $('#send');
     // Add/remove filenames from the filebox when checkboxes change
     if (cb.checked()) {
-      var cls = link.attr('class')
-      var text = link.text()
+      var cls = link.attr('class'),
+          text = link.text();
+
       // Hint whether we added a dir or a file
-      if (link.hasClass('dir'))
-        text += ' [dir]'
-      else if (link.hasClass('file'))
+      if (link.hasClass('dir')) {
+        text += ' [dir]';
+        send.attr('disabled', true);
+      } else if (link.hasClass('file'))
         text += ' [file]'
       // Add the option and pre-select it
       var o = $('<option>').text(text)
@@ -29,6 +32,16 @@ jQuery(function($){
     } else {
       // Find the option and remove it
       sel.children('option[value="' + href + '"]').remove()
+      var send_enabled = false;
+
+      sel.children().each(function (idx, item) {
+        send_enabled = true;
+        if (item.text.match(/\[dir\]$/)) {
+          send_enabled = false;
+          return;
+        }
+      });
+      send.attr('disabled', !send_enabled);
     }
   })
   // Handle send button
