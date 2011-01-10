@@ -61,6 +61,12 @@ class SharingSystemTestCase(unittest.TestCase):
     def test_send_mail(self):
         dir = resource_filename(__name__, os.path.join('..', 'htdocs'))
         files = [os.path.join(dir, f) for f in os.listdir(dir)]
+        resources = []
+        parent = Resource('source', None)
+        for f in files:
+            res = Resource('source', f, None, parent)
+            resources.append(res)
+
         subjects = ('Re: åäö',
                     u'Re: åäö',
                     'Re: ascii',
@@ -82,7 +88,7 @@ class SharingSystemTestCase(unittest.TestCase):
                                                      'pontus.enmark@gmail.com')],
                                                    subject,
                                                    body,
-                                                   *files)
+                                                   *resources)
                 headers, sent_body = parse_smtp_message(self.server.get_message())
                 assert subject == headers['Subject'], headers
                 assert os.path.basename(files[0]) in sent_body
