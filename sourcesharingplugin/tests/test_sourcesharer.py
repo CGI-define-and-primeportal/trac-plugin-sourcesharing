@@ -21,7 +21,7 @@ class SharingSystemTestCase(unittest.TestCase):
     def setupClass(cls):
         cls.server = SMTPThreadedServer(port=2526)
         cls.server.start()
-        
+
         env = EnvironmentStub(enable=['trac.*', 'announcer.*', 'sourcesharingplugin.*'])
         if sourcesharingplugin.sourcesharer.using_announcer:
             env.config.set('smtp', 'port', cls.server.port)
@@ -35,13 +35,13 @@ class SharingSystemTestCase(unittest.TestCase):
         self.sharesys = SharingSystem(self.env)
     def tearDown(self):
         self.sharesys = None
-    
+
     def test_get_address(self):
         pass
-    
+
     def test_parse_email(self):
-        valid = ('john.doe@logica.com', 'Doe, John john.doe@logica.com', 
-                 '"John Doe" <john.doe@logica.com ', 
+        valid = ('john.doe@logica.com', 'Doe, John john.doe@logica.com',
+                 '"John Doe" <john.doe@logica.com ',
                  ' "Doe, John"    <john.doe+label@logica.com> ',
                  '"Örjan Pärson" <orjan.persson@logica.com>')
         invalid = ('kallekula_at_gmail_com', '', None, )
@@ -51,17 +51,17 @@ class SharingSystemTestCase(unittest.TestCase):
         for v in invalid:
             name, address = self.sharesys.parse_address(v)
             assert name is None and address is None, v
-        
+
     def test_get_resource(self):
         req = Request(perm=MockPerm(), href=Href)
         repo = Resource('repository', '')
         res = self.sharesys._get_file_resource(req, 'source', repo, 'trunk')
         assert res.id == 'trunk', res
-        
+
     def test_send_mail(self):
         dir = resource_filename(__name__, os.path.join('..', 'htdocs'))
         files = [os.path.join(dir, f) for f in os.listdir(dir)]
-        subjects = ('Re: åäö', 
+        subjects = ('Re: åäö',
                     u'Re: åäö',
                     'Re: ascii',
                     )
@@ -74,12 +74,12 @@ class SharingSystemTestCase(unittest.TestCase):
             for body in bodies:
                 body = to_unicode(body)
                 mail = self.sharesys.send_as_email("anonymous",
-                                                   (u'Pöntus Enmärk', 
-                                                    'pontus.enmark@logica.com'), 
-                                                   [(u'Pontus Enmark', 
+                                                   (u'Pöntus Enmärk',
+                                                    'pontus.enmark@logica.com'),
+                                                   [(u'Pontus Enmark',
                                                      'pontus.enmark@logica.com'),
                                                     (u'Pöntus Enmärk',
-                                                     'pontus.enmark@gmail.com')], 
+                                                     'pontus.enmark@gmail.com')],
                                                    subject,
                                                    body,
                                                    *files)
