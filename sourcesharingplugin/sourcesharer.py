@@ -34,6 +34,8 @@ Created on 17 Jun 2010
 
 @author: enmarkp
 '''
+from tempfile import mkstemp
+from autocompleteplugin.api import IAutoCompleteUser
 from trac.config import Option
 from trac.web.chrome import Chrome
 from trac.core import Component, implements, TracError
@@ -57,7 +59,6 @@ from pkg_resources import resource_filename
 from genshi.template.loader import TemplateLoader
 from genshi.filters.transform import Transformer
 from genshi.builder import tag
-import re
 from trac.notification import EMAIL_LOOKALIKE_PATTERN
 try:
     from email.utils import formataddr, formatdate
@@ -74,8 +75,6 @@ except ImportError:
     from email.Encoders import encode_base64
     from email.MIMEText import MIMEText
     from email.Charset import Charset, QP, BASE64, SHORTEST
-import os
-
 try:
     # Prefer announcer interface
     from announcer.distributors.mail import EmailDistributor as Distributor
@@ -96,8 +95,8 @@ except ImportError:
         else:
             message[key] = value
         return message
-
-from autocompleteplugin.api import IAutoCompleteUser
+import os
+import re
 
 __all__ = ['SharingSystem', 'Distributor','using_announcer']
 
@@ -144,25 +143,21 @@ class SharingSystem(Component):
         headers['From'] = from_addr
         headers['Date'] = formatdate()
         body = self._format_email(authname, sender, recipients, subject, text, *resources)
-        msg = MIMEText(body, 'html')
+        msg = MIMEText(body, 'html', 'utf-8')
         root.attach(msg)
         mimeview = Mimeview(self.env)
         files = []
         for r in resources:
             if not hasattr(r, 'realm') or r.realm != 'source':
                 raise TypeError("Resources must have the 'realm' attribute")
-
             repo = RepositoryManager(self.env).get_repository(r.parent.id)
             n = repo.get_node(r.id, rev=r.version)
-
             if not n.isfile:
                 raise TypeError("Resources must be files")
-
             content = n.get_content().read()
             f = os.path.join(repo.repos.path, n.path)
             mtype = n.get_content_type() or mimeview.get_mimetype(f, content)
             files.append(n.path)
-
             if not mtype:
                 mtype = 'application/octet-stream'
             if '; charset=' in mtype:
@@ -179,6 +174,13 @@ class SharingSystem(Component):
         for k, v in headers.items():
             set_header(root, k, v, 'utf-8')
         email = (from_addr, recp, root.as_string())
+        # Write mail to /tmp
+        #import logging
+        #if self.log.isEnabledFor(logging.DEBUG):
+        #   (fd, tmpname) = mkstemp()
+        #   os.write(fd, email[2])
+        #   os.close(fd)
+        #   self.log.debug('Wrote mail from %s to %s to %s', email[0], email[1], tmpname)
         self.log.info('Sending mail with items %s from %s to %s', resources, from_addr, recp)
         try:
             if using_announcer:
@@ -190,7 +192,6 @@ class SharingSystem(Component):
                 mailsys.send_email(*email)
         except Exception, e:
             raise TracError(e.message)
-
         return files
 
     def _format_email(self, authname, sender, recipients, subject, text, *resources):
@@ -220,11 +221,10 @@ class SharingSystem(Component):
         data = {'sendername': sender[0],
                 'senderaddress': sender[1],
                 'comment': htmlmessage,
-                'attachments': resources,
+                'attachments': [os.path.basename(r.id) for r in resources],
                 'project_name': self.env.project_name,
                 'project_desc': self.env.project_description,
                 'project_link': self.env.project_url or self.env.abs_href()}
-
         chrome = Chrome(self.env)
         dirs = []
         for provider in chrome.template_providers:
