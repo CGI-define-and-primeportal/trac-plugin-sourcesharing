@@ -10,6 +10,12 @@
   border-radius: 7px;
   -moz-border-radius: 7px;
 }
+.message.error {
+  border-color: #c00;
+}
+#user-select {
+  width: 250px;
+}
 #right {
   display: none;
 }
@@ -22,4 +28,15 @@
   width: 20%;
   margin: 5px;
   background: white none repeat scroll 0 0;
+}
+.user-entry { 
+  border:1px dotted #ddd;
+  padding:3px;
+  float:left;
+  margin:2px;
+  cursor:pointer;
+}
+.user-entry span {
+  color: red;
+  margin-top: -0.4ex;
 }

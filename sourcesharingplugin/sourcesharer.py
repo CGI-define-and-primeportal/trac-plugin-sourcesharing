@@ -37,7 +37,7 @@ Created on 17 Jun 2010
 from tempfile import mkstemp
 from autocompleteplugin.api import IAutoCompleteUser
 from trac.config import Option
-from trac.web.chrome import Chrome
+from trac.web.chrome import Chrome, add_ctxtnav
 from trac.core import Component, implements, TracError
 from trac.test import Mock, MockPerm
 from trac.web.href import Href
@@ -270,7 +270,6 @@ class SharingSystem(Component):
             # TODO check that contextmenu's InternalNameHolder is enabled, as our js needs it?
             add_stylesheet(req, 'sourcesharer/filebox.css')
             add_javascript(req, 'sourcesharer/filebox.js')
-            add_javascript(req, 'sourcesharer/share.js')
             # Render the filebox template for stream insertion
 
             # TODO introduce a new interface to allow putting extra buttons into this filebox?
@@ -280,6 +279,8 @@ class SharingSystem(Component):
             # TODO change the id names, left/right seems a bit generic to assume we can have to ourselves
             stream |= Transformer('//table[@id="dirlist"]').wrap(tag.div(id="outer",style="clear:both")).wrap(tag.div(id="left"))
             stream |= Transformer('//div[@id="outer"]').append(tag.div(filebox, id="right"))
+            add_ctxtnav(req, tag.a(_("Send"), href="", title=_("Send selected files"), id='share-files', class_='alt-button share-files'),
+                        category='ctxtnav', order=10)
         return stream
 
     # ITemplateProvider methods

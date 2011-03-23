@@ -1,17 +1,39 @@
 jQuery(function($){
+  $('#user-select').live('change', function(e){
+    var mailto = $(this).val(),
+        label = this.options[this.selectedIndex].text
+    // Check that we have an email in either value or label
+    // XXX: this may not be needed when we can ldap look up email in the controller
+    if (!mailto || (mailto.indexOf('@') == -1 && label.indexOf('@') == -1)) {
+      $('#filebox-errors').text($.format(_("$1 is either not an email or the user's email is not known."), label)).fadeIn()
+      setTimeout(function(){$('#filebox-errors').empty().fadeOut()}, 5000)
+      return
+    }
+    var added = false
+    $(this.form, 'input[name="user"]').each(function(i, x) {
+      if ($(x).val() == mailto) {
+        added = true
+        return
+      }
+    })
+    if (added)
+      return
+    var i = $('<div class="user-entry">')
+    i.text(label).click(function(e){$(this).remove()})
+    i.attr('title', 'Click to remove')
+    i.append($('<input type="hidden" name="user"/>').val(mailto))
+    i.append($('<span> x </span>'))
+    $('#selected-users').append(i)
+  })
+  $('#share-files').click(function(e) {
+    $('#browser-filebox').dialog({
+      title: _("Send Selected Files by Email")
+    })
+    return false
+  })
   // The list of files is "live" (may be updated with ajax), so we need to
   // use the live bind to attach to updated rows.
   $('#dirlist .fileselect').live('click', function(e){
-    if ($('#dirlist .fileselect:checked').length == 0) {
-      $('#right').removeClass('grown').fadeOut(200, function(){
-        $('#left').removeClass('shrunk').animate({width:'100%'}, 200)
-      })
-    }    
-    if (! $('#left').hasClass('shrunk')) {
-      $('#left').addClass('shrunk').animate({width: '75%'},200,function() {
-        $('#right').addClass('grown').fadeIn('fast');
-      });
-    };
     var sel = $('#filebox-files'),
         cb = $(this),
     // Read the filename from a hidden span set in stream in contextmenuplugin
@@ -87,23 +109,25 @@ jQuery(function($){
       type: 'POST',
       data: $.param(fields),
       success: function(data, textStatus, xhr){
-        btn.attr('disabled', false)
-        // Clear form
-        $('#subject, #message').val('')
-        $('#selected-users').empty()
-        // Hide send files form
-        $('#sourcesharer').slideUp()
+        btn.attr('disabled', false)        
         $('#send').attr('disabled', false)
         if (data.files.length && data.recipients.length) {
           $('#filebox-notice').text('Sent ' + data.files.join(', ') + ' to: ' + data.recipients.join(', ')).fadeIn()
         }
+        // Clear recipients
+        $('#selected-users').empty()
         if (data.failures.length) {
           $('#filebox-errors').text('Errors: ' + data.failures.join(', ')).fadeIn()
+        } else {
+          // Clear message
+          $('#subject, #message').val('')
+          $('#sourcesharer').slideUp()
         }
       },
       error: function(xhr, textStatus, errorThrown) {
         $('#filebox-errors').text('Errors: ' + xhr.responseText).fadeIn()
         btn.attr('disabled', false)
+        $('#send').attr('disabled', false)
       }
     })
   })
