@@ -2,9 +2,14 @@ jQuery(function($){
   // The list of files is "live" (may be updated with ajax), so we need to
   // use the live bind to attach to updated rows.
   $('#dirlist .fileselect').live('click', function(e){
+    if ($('#dirlist .fileselect:checked').length == 0) {
+      $('#right').removeClass('grown').fadeOut(200, function(){
+        $('#left').removeClass('shrunk').animate({width:'100%'}, 200)
+      })
+    }    
     if (! $('#left').hasClass('shrunk')) {
-      $('#left').addClass('shrunk').animate({width: '75%'},1000,function() {
-        $('#right').addClass('grown').fadeIn('slow');
+      $('#left').addClass('shrunk').animate({width: '75%'},200,function() {
+        $('#right').addClass('grown').fadeIn('fast');
       });
     };
     var sel = $('#filebox-files'),
@@ -24,6 +29,7 @@ jQuery(function($){
         send.attr('disabled', true);
       } else if (link.hasClass('file'))
         text += ' [file]'
+        send.attr('disabled', false);
       // Add the option and pre-select it
       var o = $('<option>').text(text)
                            .val(href)
