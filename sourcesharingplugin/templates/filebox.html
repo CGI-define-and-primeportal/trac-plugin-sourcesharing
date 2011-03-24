@@ -10,21 +10,16 @@
           <option py:for="file in files" value="file" selected="selected">$file</option> 
         </select>
       </div>
-      <div>
-        <input type="submit" id="send" value="Send"/>
-      </div>
-      <div id="filebox-notice" class="message" style="display:none">
-      </div>
-      <div id="filebox-errors" class="error message" style="display:none">
-      </div>
-      <div id="sourcesharer" style="display:none">
+      <div id="filebox-notice" class="message"/>
+      <div id="filebox-errors" class="error message"/>
+      <div id="sourcesharer">
         <div>
-          <label for="user-select">Select recipients:</label><br/>
+          <label for="user-select">Select recipient(s):</label><br/>
           <select id="user-select" name="user-select">
             <option value="">Select user(s)</option>
           </select>
         </div>
-        To:
+        <label for="selected-users">To:</label>
         <div id="selected-users"></div>
         <div style="clear:left"></div>
         <div>
@@ -35,7 +30,7 @@
           <label for="subject">Message:</label><br/>
           <textarea name="message" id="message" style="width:100%;height:10em"></textarea>
         </div>
-        <div>
+        <div class="buttons">
             <input type="submit" id="do_send" value="Send"/>
             <input type="submit" id="cancel" value="Cancel"/>
         </div>

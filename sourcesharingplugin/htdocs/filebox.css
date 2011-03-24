@@ -5,10 +5,8 @@
   margin-top: 0;
 }
 #filebox-notice, #filebox-errors {
-  margin: 1em;
   padding: 1ex;
-  border-radius: 7px;
-  -moz-border-radius: 7px;
+  display: none;
 }
 .message.error {
   border-color: #c00;
@@ -36,7 +34,9 @@
   margin:2px;
   cursor:pointer;
 }
-.user-entry span {
+.user-entry .remover {
   color: red;
-  margin-top: -0.4ex;
+  float: right;
+  margin-left: 1ex;
+  margin-top: -3px;
 }
