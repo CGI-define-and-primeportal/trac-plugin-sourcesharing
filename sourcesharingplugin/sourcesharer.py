@@ -172,7 +172,7 @@ class SharingSystem(Component):
             root.attach(part)
         del root['Content-Transfer-Encoding']
         for k, v in headers.items():
-            set_header(root, k, v, 'utf-8')
+            set_header(root, k, v)
         email = (from_addr, recp, root.as_string())
         # Write mail to /tmp
         #import logging
