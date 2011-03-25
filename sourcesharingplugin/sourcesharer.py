@@ -132,12 +132,12 @@ class SharingSystem(Component):
         """
         assert len(resources) > 0, 'Nothing to send!'
         mailsys = self.distributor(self.env)
-        from_addr = formataddr(sender)
+        from_addr = sender[1]
         root = MIMEMultipart('related')
         root.set_charset(self._make_charset())
         root.preamble = 'This is a multi-part message in MIME format.'
         headers = {}
-        recp = [formataddr(r) for r in recipients]
+        recp = [r[1] for r in recipients]
         headers['Subject'] = subject
         headers['To'] = ', '.join(recp)
         headers['From'] = from_addr
