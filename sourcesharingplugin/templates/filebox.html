@@ -5,34 +5,45 @@
   <div id="browser-filebox">
     <form id="filebox-form" action="${href.share()}" method="post">
       <input name="repository" type="hidden" value="${reponame}"/>
-      <div><label for="filebox-files">Selected files/folders:</label><br/>
-        <select style="width:100%" multiple="multiple" id="filebox-files" name="filebox-files" py:with="files = files or []">
+      <div class="field">
+        <label for="filebox-files" style="width: 100%; padding-bottom: 4px;">Selected files/folders:</label>
+      </div>
+      <div class="field" style="margin-top: 7px">
+          <select style="width:415px; border: 1px solid #BBB;" multiple="multiple" id="filebox-files" name="filebox-files" py:with="files = files or []">
           <option py:for="file in files" value="file" selected="selected">$file</option> 
         </select>
       </div>
       <div id="filebox-notice" class="message"/>
       <div id="filebox-errors" class="error message"/>
       <div id="sourcesharer">
-        <div>
-          <label for="user-select">Select recipient(s):</label><br/>
-          <select id="user-select" name="user-select">
+        <div class="field">
+          <label for="user-select" style="width: 100%; padding-bottom: 4px;">Select recipient(s):</label>
+        </div>
+        <div class="field">
+          <select id="user-select" name="user-select" >
             <option value="">Select user(s)</option>
           </select>
         </div>
-        <label for="selected-users">To:</label>
+        <div class="field" style="margin-top: 15px">
+          <label for="selected-users" style="width: 100%; padding-bottom: 4px;">Recipients:</label>
+        </div>
         <div id="selected-users"></div>
         <div style="clear:left"></div>
-        <div>
-          <label for="subject">Subject:</label><br/>
-          <input type="text" name="subject" id="subject"/>
+        <div class="field" style="margin-bottom: 10px; border-bottom: 1px solid #DDD; margin-top: 10px">
+            
         </div>
-        <div>
-          <label for="subject">Message:</label><br/>
-          <textarea name="message" id="message" style="width:100%;height:10em"></textarea>
+        <div class="field">
+          <label for="subject">Subject:</label>
+          <input type="text" name="subject" id="subject" style="width: 320px"/>
+        </div >
+        <div class="field">
+          <label for="subject">Message:</label>
+          <textarea name="message" id="message" style="width:320px; height:5em"></textarea>
         </div>
         <div class="buttons">
+            <input type="submit" class="cancel" id="cancel" value="Cancel"/>
             <input type="submit" id="do_send" value="Send"/>
-            <input type="submit" id="cancel" value="Cancel"/>
+            
         </div>
       </div>
     </form>

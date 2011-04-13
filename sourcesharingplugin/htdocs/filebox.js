@@ -36,9 +36,10 @@ jQuery(function($){
     // Open the dialog
     dialog.dialog({
       title: _("Send Selected Files by Email"),
+      width: 480,
       closeOnEscape: false,
       buttons: [
-        { text: _("Ok"),
+        { text: _("Send"),
           click: function() {
             do_send()
           }
