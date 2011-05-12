@@ -115,13 +115,17 @@ class SharingSystem(Component):
         means that non-ASCII characters in text are going to cause problems
         with notifications.
         """)
+    #settings for tranfer mode of email
+    LINKS_ONLY = 1
+    ATTACHMENTS_ONLY = 2
+    LINKS_ATTACHMENTS = 3
 
     html_template_name = Option('sourcesharer',
                                 'email_html_template_name',
                                 'sourcesharer_email.html',
                                 doc="""Filename of genshi template to use for HTML mails with file attachments.""")
 
-    def send_as_email(self, authname, sender, recipients, subject, text, *resources):
+    def send_as_email(self, req, sender, recipients, subject, text, mode,  *resources):
         """
         `authname` Trac username of sender
         `sender` Tuple of (real name, email address)
@@ -142,34 +146,36 @@ class SharingSystem(Component):
         headers['To'] = ', '.join(recp)
         headers['From'] = from_addr
         headers['Date'] = formatdate()
-        body = self._format_email(authname, sender, recipients, subject, text, *resources)
-        msg = MIMEText(body, 'html', 'utf-8')
-        root.attach(msg)
-        mimeview = Mimeview(self.env)
+        authname = req.authname
         files = []
+        links = []
+        attachments = []
+        mimeview = Mimeview(self.env)
         for r in resources:
-            if not hasattr(r, 'realm') or r.realm != 'source':
-                raise TypeError("Resources must have the 'realm' attribute")
             repo = RepositoryManager(self.env).get_repository(r.parent.id)
             n = repo.get_node(r.id, rev=r.version)
-            if not n.isfile:
-                raise TypeError("Resources must be files")
-            content = n.get_content().read()
-            f = os.path.join(repo.repos.path, n.path)
-            mtype = n.get_content_type() or mimeview.get_mimetype(f, content)
             files.append(n.path)
-            if not mtype:
-                mtype = 'application/octet-stream'
-            if '; charset=' in mtype:
-                # What to use encoding for?
-                mtype, encoding = mtype.split('; charset=', 1)
-            maintype, subtype = mtype.split('/', 1)
-            part = MIMEBase(maintype, subtype)
-            part.set_payload(content)
-            part.add_header('content-disposition', 'attachment',
-                            filename=os.path.basename(f))
-            encode_base64(part)
-            root.attach(part)
+            f = os.path.join(repo.repos.path, n.path)
+            if mode in [self.LINKS_ONLY, self.LINKS_ATTACHMENTS]:
+                links.append((req.abs_href.browser(repo.reponame or None, n.path), os.path.basename(f)))
+            if mode in [self.ATTACHMENTS_ONLY, self.LINKS_ATTACHMENTS]:
+                content = n.get_content().read()                
+                mtype = n.get_content_type() or mimeview.get_mimetype(f, content)
+                if not mtype:
+                    mtype = 'application/octet-stream'
+                if '; charset=' in mtype:
+                    # What to use encoding for?
+                    mtype, encoding = mtype.split('; charset=', 1)
+                attachments.append(os.path.basename(f))
+                maintype, subtype = mtype.split('/', 1)
+                part = MIMEBase(maintype, subtype)
+                part.set_payload(content)
+                part.add_header('content-disposition', 'attachment', filename=os.path.basename(f))
+                encode_base64(part)
+                root.attach(part)
+        body = self._format_email(authname, sender, recipients, subject, text, mode, links, attachments)
+        msg = MIMEText(body, 'html', 'utf-8')
+        root.attach(msg)
         del root['Content-Transfer-Encoding']
         for k, v in headers.items():
             set_header(root, k, v)
@@ -194,7 +200,7 @@ class SharingSystem(Component):
             raise TracError(e.message)
         return files
 
-    def _format_email(self, authname, sender, recipients, subject, text, *resources):
+    def _format_email(self, authname, sender, recipients, subject, text, mode, links=[], attachments=[]):
 
         if text:
             req = Mock(
@@ -221,7 +227,9 @@ class SharingSystem(Component):
         data = {'sendername': sender[0],
                 'senderaddress': sender[1],
                 'comment': htmlmessage,
-                'attachments': [os.path.basename(r.id) for r in resources],
+                'links' : links,
+                'mode': mode,
+                'attachments': attachments,
                 'project_name': self.env.project_name,
                 'project_desc': self.env.project_description,
                 'project_link': self.env.project_url or self.env.abs_href()}
@@ -235,6 +243,7 @@ class SharingSystem(Component):
         if template:
             stream = template.generate(**data)
             output = stream.render()
+        self.log.debug(output)
         return output
 
     def _make_charset(self):
@@ -274,7 +283,7 @@ class SharingSystem(Component):
 
             # TODO introduce a new interface to allow putting extra buttons into this filebox?
             tmpl = TemplateLoader(self.get_templates_dirs()).load('filebox.html')
-            filebox = tmpl.generate(href=req.href, reponame=data['reponame'] or '', files=[])
+            filebox = tmpl.generate(href=req.href, reponame=data['reponame'] or '', rev=data['rev'], files=[])
             # Wrap and float dirlist table, add filebox div
             # TODO change the id names, left/right seems a bit generic to assume we can have to ourselves
             stream |= Transformer('//table[@id="dirlist"]').wrap(tag.div(id="outer",style="clear:both")).wrap(tag.div(id="left"))
@@ -306,10 +315,16 @@ class SharingSystem(Component):
         subject = req.args.get('subject')
         message = req.args.get('message')
         reponame = req.args.get('repository')
+        mode = int(req.args.get('mode', self.LINKS_ONLY))
+        rev = req.args.get('rev', None)
+        if rev:
+            rev = int(rev)
         repo = RepositoryManager(self.env).get_repository(reponame)
         recipients = []
         to_send = []
         failures = []
+        
+        sender = self._get_address_info(req.authname)
         for u in users:
             try:
                 address = self._get_address_info(u)
@@ -327,16 +342,25 @@ class SharingSystem(Component):
             except Exception, e:
                 failures.append(str(e))
                 continue
+            if not hasattr(file_res, 'realm') or file_res.realm != 'source':
+                failures.append("Resources must have the 'realm' attribute")
+                continue
+            repo = RepositoryManager(self.env).get_repository(file_res.parent.id)
+            n = repo.get_node(file_res.id, rev=file_res.version)
+            if not n.isfile:
+                failures.append("Resources must be files")
+                continue
             to_send.append(file_res)
-        sender = self._get_address_info(req.authname)
-        try:
-            files = self.send_as_email(req.authname, sender, recipients, subject, message, *to_send)
-        except TypeError, e:
+        if not failures:
+            try:
+                files = self.send_as_email(req, sender, recipients, subject, message, mode, *to_send)
+            except Exception, e:
+                files = []
+                failures.append(str(e))
+        else:
             files = []
-            failures.append(str(e))
         response = dict(files=files, recipients=[x[1] for x in recipients],
                         failures=failures)
-        self.log.debug(response)
         if failures != []:
             msg = ", ".join(failures)
             add_warning(req, msg)

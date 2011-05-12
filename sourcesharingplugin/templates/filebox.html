@@ -5,6 +5,7 @@
   <div id="browser-filebox">
     <form id="filebox-form" action="${href.share()}" method="post">
       <input name="repository" type="hidden" value="${reponame}"/>
+      <input name="rev" type="hidden" value="${rev}"/>
       <div class="field">
         <label for="filebox-files" style="width: 100%; padding-bottom: 4px;">Selected files/folders:</label>
       </div>
@@ -40,6 +41,14 @@
           <label for="subject">Message:</label>
           <textarea name="message" id="message" style="width:320px; height:5em"></textarea>
         </div>
+        <div class="field">
+          <label for="mode">Transfer Mode:</label>
+          <select id="mode" name="mode" style="width: 320px">
+            <option value="1">Links only</option>
+            <option value="2">Attachments only</option>
+            <option value="3">Links and Attachments</option>
+          </select>
+        </div >
         <div class="buttons">
             <input type="submit" class="cancel" id="cancel" value="Cancel"/>
             <input type="submit" id="do_send" value="Send"/>
