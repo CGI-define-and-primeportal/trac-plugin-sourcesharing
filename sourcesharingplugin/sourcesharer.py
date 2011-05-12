@@ -243,7 +243,6 @@ class SharingSystem(Component):
         if template:
             stream = template.generate(**data)
             output = stream.render()
-        self.log.debug(output)
         return output
 
     def _make_charset(self):
