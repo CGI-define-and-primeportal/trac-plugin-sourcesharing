@@ -156,9 +156,9 @@ class SharingSystem(Component):
             n = repo.get_node(r.id, rev=r.version)
             files.append(n.path)
             f = os.path.join(repo.repos.path, n.path)
-            if mode in [self.LINKS_ONLY, self.LINKS_ATTACHMENTS]:
-                links.append((req.abs_href.browser(repo.reponame or None, n.path), os.path.basename(f)))
-            if mode in [self.ATTACHMENTS_ONLY, self.LINKS_ATTACHMENTS]:
+            if mode in (self.LINKS_ONLY, self.LINKS_ATTACHMENTS):
+                links.append((req.abs_href.browser(repo.reponame or None, n.path, format='raw'), os.path.basename(f)))
+            if mode in (self.ATTACHMENTS_ONLY, self.LINKS_ATTACHMENTS):
                 content = n.get_content().read()                
                 mtype = n.get_content_type() or mimeview.get_mimetype(f, content)
                 if not mtype:
