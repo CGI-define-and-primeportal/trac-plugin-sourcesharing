@@ -38,7 +38,7 @@ setup(
     author_email = 'pontus.enmark@logica.com',
     description = "Share files from the source browser via e-mail or other means.",
     license = "Copyright (c) 2010, Logica. All rights reserved. Released under the 3-clause BSD license.",
-    url = "http://d4.planetdefine.net",
+    url = "http://d4.define.logica.com",
     packages = ['sourcesharingplugin'],
     package_data = {'sourcesharingplugin' : ['htdocs/*.js',
                                              'htdocs/*.css',
