@@ -20,7 +20,7 @@ jQuery(function($){
     if (added)
       return
     var i = $('<div class="user-entry">')
-    i.append('<span class="remover"> x </span>').append($('<span>').text(label)).click(function(e){$(this).remove()})
+    i.append($('<button>').text(label)).click(function(e){$(this).remove()})
     i.attr('title', 'Click to remove')
     i.append($('<input type="hidden" name="user"/>').val(mailto))
     // i.append($('<span> x </span>'))
@@ -39,15 +39,17 @@ jQuery(function($){
       width: 480,
       closeOnEscape: false,
       buttons: [
-        { text: _("Send"),
-          click: function() {
-            do_send()
-          }
-        },
         { text: _("Cancel"),
           click: function() {
             $(this).dialog('close')
-          }
+          },
+          'class': 'sprite-button sprite-buttonCancel sprite-buttonSpecial'
+        },
+        { text: _("Send"),
+          click: function() {
+            do_send()
+          },
+          'class': 'sprite-button sprite-buttonSend sprite-buttonSpecial'
         }
       ]
     }).dialog('open')
