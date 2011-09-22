@@ -43,13 +43,13 @@ jQuery(function($){
           click: function() {
             $(this).dialog('close')
           },
-          'class': 'sprite-button sprite-buttonCancel sprite-buttonSpecial'
+          'class': 'sprite-button sprite-buttonCancel sprite-buttonSpecial button-margin-bottom'
         },
         { text: _("Send"),
           click: function() {
             do_send()
           },
-          'class': 'sprite-button sprite-buttonSend sprite-buttonSpecial'
+          'class': 'sprite-button sprite-buttonSend sprite-buttonSpecial button-margin-bottom'
         }
       ]
     }).dialog('open')
