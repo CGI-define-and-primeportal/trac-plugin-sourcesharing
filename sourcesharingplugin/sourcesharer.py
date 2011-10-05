@@ -275,6 +275,10 @@ class SharingSystem(Component):
     def filter_stream(self, req, method, filename, stream, data):
         if filename == 'browser.html' and req.method == 'GET':
 
+            # we can only work from the 'dir' view at the moment
+            if data.get('file'):
+                return stream
+
             # TODO check that contextmenu's InternalNameHolder is enabled, as our js needs it?
             add_stylesheet(req, 'sourcesharer/filebox.css')
             add_javascript(req, 'sourcesharer/filebox.js')
