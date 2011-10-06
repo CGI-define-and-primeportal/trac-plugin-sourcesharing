@@ -43,14 +43,13 @@ jQuery(function($){
           click: function() {
             $(this).dialog('close')
           },
-          'class': 'sprite-button sprite-button80 sprite-buttonSpecial button-margin-bottom'
+          'class': 'sprite-button sprite-buttonCancel sprite-buttonSpecial button-margin-bottom'
         },
         { text: _("Send"),
           click: function() {
             do_send()
           },
-          // See https://d4.define.logica.com/ticket/1395
-          'class': 'sprite-button sprite-button80 sprite-buttonSpecial button-margin-bottom'
+          'class': 'sprite-button sprite-buttonSend sprite-buttonSpecial button-margin-bottom'
         }
       ]
     }).dialog('open')
