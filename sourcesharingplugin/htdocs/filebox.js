@@ -49,7 +49,7 @@ jQuery(function($){
           click: function() {
             do_send()
           },
-          'class': 'sprite-button sprite-buttonSend sprite-buttonSpecial button-margin-bottom'
+          'class': 'sprite-button sprite-buttonSend60 sprite-buttonSpecial button-margin-bottom'
         }
       ]
     }).dialog('open')
