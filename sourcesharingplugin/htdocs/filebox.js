@@ -27,7 +27,7 @@ jQuery(function($){
     $('#selected-users').append(i)
   })
   // Dialog for sending files
-  var dialog = $('#browser-filebox') 
+  var dialog = $('#browser-filebox')
   $('#share-files').click(function(e) {
     // Hide buttons from template
     $('.buttons', dialog).remove()
