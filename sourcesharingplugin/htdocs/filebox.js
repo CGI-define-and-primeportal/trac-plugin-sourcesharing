@@ -7,6 +7,8 @@ jQuery(function($){
     // controller
     if (!mailto || (mailto.indexOf('@') == -1 && label.indexOf('@') == -1)) {
       $('#filebox-errors').text($.format(_("$1 is either not an email or the user's email is not known."), label)).fadeIn()
+      document.getElementById('user-select').value='';
+      document.getElementById('user-select').selectedIndex = '0';
       setTimeout(function(){$('#filebox-errors').empty().fadeOut()}, 5000)
       return
     }
@@ -23,12 +25,16 @@ jQuery(function($){
     i.append($('<button>').text(label)).click(function(e){$(this).remove()})
     i.attr('title', 'Click to remove')
     i.append($('<input type="hidden" name="user"/>').val(mailto))
+    document.getElementById('user-select').selectedIndex = '0';
     // i.append($('<span> x </span>'))
     $('#selected-users').append(i)
   })
   // Dialog for sending files
   var dialog = $('#browser-filebox')
   $('#share-files').click(function(e) {
+    document.getElementById('user-select').selectedIndex = '0';  
+    // Clear recipients
+    $('#selected-users').empty()
     // Hide buttons from template
     $('.buttons', dialog).remove()
     // Remove messages
