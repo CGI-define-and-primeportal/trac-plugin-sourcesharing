@@ -49,13 +49,13 @@ jQuery(function($){
           click: function() {
             $(this).dialog('close')
           },
-          'class': 'sprite-button sprite-buttonCancel sprite-buttonSpecial button-margin-bottom'
+          'class': 'btn btn-primary btn-mini'
         },
         { text: _("Send"),
           click: function() {
             do_send()
           },
-          'class': 'sprite-button sprite-buttonSend60 sprite-buttonSpecial button-margin-bottom'
+          'class': 'btn btn-primary btn-mini'
         }
       ]
     }).dialog('open')
