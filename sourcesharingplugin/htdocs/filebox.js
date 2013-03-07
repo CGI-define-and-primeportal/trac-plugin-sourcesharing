@@ -30,15 +30,42 @@ jQuery(function($){
     $('#selected-users').append(i)
   })
   // Dialog for sending files
-  var dialog = $('#browser-filebox')
-  $('#share-files').click(function(e) {
-    document.getElementById('user-select').selectedIndex = '0';  
-    // Clear recipients
-    $('#selected-users').empty()
-    // Hide buttons from template
-    $('.buttons', dialog).remove()
-    // Remove messages
-    $('#filebox-errors, #filebox-notice').empty().hide()
+  $('.share-files-multiple').click(function(e) { open_send_dialogue(); });
+  $('.share-files').click(function(e) { open_send_dialogue($(this)); });
+  
+  // One function for both single and multiple send funcs
+  function open_send_dialogue(to_send) {
+    
+    // If no specific file selected, send all checked files
+    if(to_send === undefined) to_send = $("#dirlist input[type=checkbox]:checked");
+    
+    var sel = $("#filebox-files"),
+      dialog = $('#browser-filebox');
+      
+    sel.html("");
+    
+    // Set the to send values based on selected elements
+    to_send.each(function() {   
+      // Retrieve name and type (dir/file) from a hidden span set in stream in contextmenuplugin  
+      var cb = $(this),
+        link = cb.closest('tr').find('td.name span.filenameholder'),
+        href = link.text(),
+        text = link.text();
+      // Hint whether we added a dir or a file
+      if (link.hasClass('dir')) text += ' [dir]';
+      else if (link.hasClass('file')) text += ' [file]';
+      // Add the option and pre-select it
+      var o = $('<option>').text(text)
+                         .val(href)
+                         .attr('selected', true)
+      sel.append(o)
+    });
+
+    // Reset all form values
+    document.getElementById('user-select').selectedIndex = '0';  // Back to top of select list
+    $('#selected-users').empty(); // Clear selected users
+    $('.buttons', dialog).remove(); // Hide buttons from template
+    $('#filebox-errors, #filebox-notice').empty().hide(); // Remove messages
     // Open the dialog
     dialog.dialog({
       title: _("Send Selected Files by Email"),
@@ -59,46 +86,9 @@ jQuery(function($){
         }
       ]
     }).dialog('open')
-    return false
-  })
-  // The list of files is "live" (may be updated with ajax), so we need to
-  // use the live bind to attach to updated rows.
-  $('#dirlist .fileselect').live('click', function(e){
-    var sel = $('#filebox-files'),
-        cb = $(this),
-        // Read the filename from a hidden span set in stream in contextmenuplugin
-        link = cb.closest('tr').find('td.name span.filenameholder'),
-        href = link.text()
-    // Add/remove filenames from the filebox when checkboxes change
-    if (cb.checked()) {
-      var cls = link.attr('class'),
-          text = link.text();
-
-      // Hint whether we added a dir or a file
-      if (link.hasClass('dir')) {
-        text += ' [dir]';
-      } else if (link.hasClass('file'))
-        text += ' [file]'
-      // Add the option and pre-select it
-      var o = $('<option>').text(text)
-                           .val(href)
-                           .attr('selected', true)
-      sel.append(o)
-    } else {
-      // Find the option and remove it
-      sel.children('option[value="' + href + '"]').remove()
-      var send_enabled = false;
-
-      sel.children().each(function (idx, item) {
-        send_enabled = true;
-        if (item.text.match(/\[dir\]$/)) {
-          send_enabled = false;
-          return;
-        }
-      });
-    }
-  })
-
+    return false;  
+  }
+  
   // Disable unimplemented buttons
   $('#delete, #mkdir, #upload').click(function(e){ alert('Not implemented yet'); return false })
   // Override the normal http form post ("normal" posting isn't handled yet)

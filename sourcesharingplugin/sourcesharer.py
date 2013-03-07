@@ -291,8 +291,9 @@ class SharingSystem(Component):
             # TODO change the id names, left/right seems a bit generic to assume we can have to ourselves
             stream |= Transformer('//table[@id="dirlist"]').wrap(tag.div(id="outer",style="clear:both")).wrap(tag.div(id="left"))
             stream |= Transformer('//div[@id="outer"]').append(tag.div(filebox, id="right"))
-            add_ctxtnav(req, tag.a(_(tag.i(class_="icon-envelope icon-blue")), " Send", href="", title=_("Send selected files"), id='share-files', class_='alt-button share-files'),
-                        category='ctxtnav', order=10)
+            add_ctxtnav(req, tag.a(_(tag.i(class_="icon-envelope")), " Send", href="", title=_("Send selected files"), id='share-files', class_='alt-button share-files-multiple'),
+                category='ctxtnav', order=10)
+
         return stream
 
     # ITemplateProvider methods
