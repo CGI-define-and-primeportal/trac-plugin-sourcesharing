@@ -30,7 +30,10 @@ jQuery(function($){
     $('#selected-users').append(i)
   })
   // Dialog for sending files
-  $('.share-files-multiple').click(function(e) { open_send_dialogue(); });
+  $('.share-files-multiple').click(function(e) { 
+    e.preventDefault();
+    open_send_dialogue();
+  });
   $('.share-files').click(function(e) { open_send_dialogue($(this)); });
   
   // One function for both single and multiple send funcs
