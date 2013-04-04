@@ -1,5 +1,5 @@
 jQuery(function($){
-  $('#user-select').live('change', function(e){
+  $("body").on("change", "#user-select", function(e){
     var mailto = $(this).val(),
         label = this.options ? this.options[this.selectedIndex].text : mailto
     // Check that we have an email in either value or label
