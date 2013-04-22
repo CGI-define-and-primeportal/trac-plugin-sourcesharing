@@ -74,6 +74,7 @@ jQuery(function($){
       title: _("Send Selected Files by Email"),
       width: 480,
       closeOnEscape: false,
+      modal: true,
       buttons: [
         { text: _("Cancel"),
           click: function() {

@@ -6,11 +6,9 @@
     <form id="filebox-form" action="${href.share()}" method="post">
       <input name="repository" type="hidden" value="${reponame}"/>
       <input name="rev" type="hidden" value="${rev}"/>
-      <div class="field">
-        <label for="filebox-files" style="width: 100%; padding-bottom: 4px;">Selected files/folders:</label>
-      </div>
-      <div class="field" style="margin-top: 7px">
-          <select style="width:415px; border: 1px solid #BBB;" multiple="multiple" id="filebox-files" name="filebox-files" py:with="files = files or []">
+      <div class="field first">
+        <label for="filebox-files">Selected files/folders:</label>
+          <select multiple="multiple" id="filebox-files" name="filebox-files" py:with="files = files or []">
           <option py:for="file in files" value="file" selected="selected">$file</option> 
         </select>
       </div>
@@ -18,44 +16,36 @@
       <div id="filebox-errors" class="error message"/>
       <div id="sourcesharer">
         <div class="field">
-          <label for="user-select" style="width: 100%; padding-bottom: 4px;">Select recipient(s):</label>
-        </div>
-        <div class="field">
+          <label for="user-select">Select recipient(s):</label>
           <select id="user-select" name="user-select" >
             <option value="">Select user(s)</option>
           </select>
         </div>
-        <div class="field" style="margin-top: 15px">
-          <label for="selected-users" style="width: 100%; padding-bottom: 4px;">Recipients:</label>
-        </div>
-        <div id="selected-users"></div>
-        <div style="clear:left"></div>
-        <div class="field" style="margin-bottom: 10px; border-bottom: 1px solid #DDD; margin-top: 10px">
-            
+        <div class="field">
+          <label for="selected-users">Recipients:</label>
+          <div id="selected-users" class="cf"></div>
         </div>
         <div class="field">
           <label for="subject">Subject:</label>
-          <input type="text" name="subject" id="subject" class="slim"/>
-        </div >
+          <input type="text" name="subject" id="subject" />
+        </div>
         <div class="field">
           <label for="subject">Message:</label>
-          <textarea name="message" id="message" class="xxsmall"></textarea>
+          <textarea name="message" id="message" class="xsmall"></textarea>
         </div>
         <div class="field">
           <label for="mode">Transfer Mode:</label>
-          <select id="mode" name="mode" style="width: 320px">
+          <select id="mode" name="mode">
             <option value="1">Links only</option>
             <option value="2">Attachments only</option>
             <option value="3">Links and Attachments</option>
           </select>
         </div >
         <div class="buttons">
-            <button type="submit" class="btn btn-mini btn-primary cancel" id="cancel" value="Cancel"><i class="icon-remove icon-white"></i> Cancel</button>
-            <button type="submit" class="btn btn-mini btn-primary" id="do_send" value="Send"><i class="icon-envelope icon-white"></i> Send</button>
-            
+          <button type="submit" class="btn btn-mini btn-primary cancel" id="cancel" value="Cancel"><i class="icon-remove icon-white"></i> Cancel</button>
+          <button type="submit" class="btn btn-mini btn-primary" id="do_send" value="Send"><i class="icon-envelope icon-white"></i> Send</button>
         </div>
       </div>
     </form>
   </div>
-
 </html>
