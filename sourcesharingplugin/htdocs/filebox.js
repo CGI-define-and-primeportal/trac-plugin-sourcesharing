@@ -124,7 +124,8 @@ jQuery(function($){
         } else {
           // Clear message
           $('#subject, #message').val('')
-          setTimeout(function(){dialog.dialog('close'); $('#filebox-errors, #filebox-notice').empty()}, 3000)
+          $('#browser-filebox').dialog('close'); 
+          $('#filebox-errors, #filebox-notice').empty();
         }
       },
       error: function(xhr, textStatus, errorThrown) {
