@@ -1,0 +1,26 @@
+#browser-filebox h4 {
+  margin-top: 0;
+}
+#filebox-notice, #filebox-errors {
+  padding: 1ex;
+  display: none;
+}
+.message.error {
+  border-color: #c00;
+}
+#right {
+  display: none;
+}
+#left.shrunk { 
+  float: left; 
+  width: 100%;
+}
+#right.grown { 
+  float: left; 
+  width: 20%;
+  margin: 5px;
+  background: white none repeat scroll 0 0;
+}
+.user-entry {
+  float:left;
+}
