@@ -1,0 +1,22 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>File Archive Attachments</title>
+  </head>
+
+  <body>
+    This email is from the <a style="color: #666;" href="${project_link}">${project_name} project</a>.
+
+    <h3>Message</h3>
+    from <a href="mailto:${senderaddress}">${sendername}</a>
+    
+    ${comment}
+
+    <h3>Attachments</h3>
+    <ul>
+      <li py:for="attachment in attachments">${attachment}</li>
+    </ul>
+  </body>
+</html>

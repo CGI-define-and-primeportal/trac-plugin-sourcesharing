@@ -1,0 +1,51 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      py:strip="">
+  <div id="browser-filebox">
+    <form id="filebox-form" action="${href.share()}" method="post">
+      <input name="repository" type="hidden" value="${reponame}"/>
+      <input name="rev" type="hidden" value="${rev}"/>
+      <div class="field first">
+        <label for="filebox-files">Selected files/folders:</label>
+          <select multiple="multiple" id="filebox-files" name="filebox-files" py:with="files = files or []">
+          <option py:for="file in files" value="file" selected="selected">$file</option> 
+        </select>
+      </div>
+      <div id="filebox-notice" class="message box-info"/>
+      <div id="filebox-errors" class="error message box-warning"/>
+      <div id="sourcesharer">
+        <div class="field">
+          <label for="user-select">Select recipient(s):</label>
+          <select id="user-select" name="user-select" >
+            <option value="">Select user(s)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="selected-users">Recipients:</label>
+          <div id="selected-users" class="cf"></div>
+        </div>
+        <div class="field">
+          <label for="subject">Subject:</label>
+          <input type="text" name="subject" id="subject" />
+        </div>
+        <div class="field">
+          <label for="subject">Message:</label>
+          <textarea name="message" id="message" class="xsmall"></textarea>
+        </div>
+        <div class="field">
+          <label for="mode">Transfer Mode:</label>
+          <select id="mode" name="mode">
+            <option value="1">Links only</option>
+            <option value="2">Attachments only</option>
+            <option value="3">Links and Attachments</option>
+          </select>
+        </div >
+        <div class="buttons">
+          <button type="submit" class="btn btn-mini btn-primary cancel" id="cancel" value="Cancel"><i class="icon-remove icon-white"></i> Cancel</button>
+          <button type="submit" class="btn btn-mini btn-primary" id="do_send" value="Send"><i class="icon-envelope icon-white"></i> Send</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</html>
