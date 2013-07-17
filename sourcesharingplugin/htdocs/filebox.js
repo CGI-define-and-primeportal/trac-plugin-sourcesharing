@@ -75,20 +75,10 @@ jQuery(function($){
       width: 480,
       closeOnEscape: false,
       modal: true,
-      buttons: [
-        { text: _("Cancel"),
-          click: function() {
-            $(this).dialog('close')
-          },
-          'class': 'btn btn-primary btn-mini'
-        },
-        { text: _("Send"),
-          click: function() {
-            do_send()
-          },
-          'class': 'btn btn-primary btn-mini'
-        }
-      ]
+      buttons: {
+        Cancel: function() { $(this).dialog("close"); },
+        Send: do_send
+      }
     }).dialog('open')
     return false;  
   }
