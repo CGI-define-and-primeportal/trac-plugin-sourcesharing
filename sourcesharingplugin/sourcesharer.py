@@ -60,6 +60,7 @@ from genshi.template.loader import TemplateLoader
 from genshi.filters.transform import Transformer
 from genshi.builder import tag
 from trac.notification import EMAIL_LOOKALIKE_PATTERN
+from trac.versioncontrol.svn_fs import SvnCachedRepository, SubversionRepository
 try:
     from email.utils import formataddr, formatdate
     from email.mime.base import MIMEBase
@@ -291,8 +292,15 @@ class SharingSystem(Component):
             # TODO change the id names, left/right seems a bit generic to assume we can have to ourselves
             stream |= Transformer('//table[@id="dirlist"]').wrap(tag.div(id="outer",style="clear:both")).wrap(tag.div(id="left"))
             stream |= Transformer('//div[@id="outer"]').append(tag.div(filebox, id="right"))
-            add_ctxtnav(req, tag.a(_(tag.i(class_="icon-envelope")), " Send", href="", title=_("Send selected files"), id='share-files', class_='alt-button share-files-multiple'),
-                category='ctxtnav', order=10)
+
+            is_svn_repo = False
+            if 'repos' in data:
+                is_svn_repo = isinstance(data.get('repos'), 
+                                    (SvnCachedRepository, 
+                                    SubversionRepository)) or False
+            if is_svn_repo:
+                add_ctxtnav(req, tag.a(_(tag.i(class_="icon-envelope")), " Send", href="", title=_("Send selected files"), id='share-files', class_='alt-button share-files-multiple'),
+                    category='ctxtnav', order=10)
 
         return stream
 
