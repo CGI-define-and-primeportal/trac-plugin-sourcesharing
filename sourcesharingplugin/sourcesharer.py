@@ -235,12 +235,7 @@ class SharingSystem(Component):
                 'project_desc': self.env.project_description,
                 'project_link': self.env.project_url or self.env.abs_href()}
         chrome = Chrome(self.env)
-        dirs = []
-        for provider in chrome.template_providers:
-            dirs += provider.get_templates_dirs()
-        templates = TemplateLoader(dirs, variable_lookup='lenient')
-        template = templates.load(self.html_template_name,
-                cls=MarkupTemplate)
+        template = chrome.load_template(self.html_template_name)
         if template:
             stream = template.generate(**data)
             output = stream.render()
