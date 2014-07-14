@@ -293,6 +293,9 @@ class SharingSystem(Component):
                 is_svn_repo = isinstance(data.get('repos'), 
                                     (SvnCachedRepository, 
                                     SubversionRepository)) or False
+            if is_svn_repo:
+                add_ctxtnav(req, tag.a(_(tag.i(class_="icon-envelope")), " Send", href="", title=_("Send selected files"), id='share-files', class_='alt-button share-files-multiple'),
+                    category='ctxtnav', order=10)
 
         return stream
 
