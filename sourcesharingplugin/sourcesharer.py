@@ -294,7 +294,7 @@ class SharingSystem(Component):
                                     (SvnCachedRepository, 
                                     SubversionRepository)) or False
             if is_svn_repo:
-                add_ctxtnav(req, tag.a(_(tag.i(class_="icon-envelope")), " Send", href="", title=_("Send selected files"), id='share-files', class_='alt-button share-files-multiple'),
+                add_ctxtnav(req, tag.a(_(tag.i(class_="fa fa-envelope-o")), " Send", href="", title=_("Send selected files"), id='share-files', class_='alt-button share-files-multiple'),
                     category='ctxtnav', order=10)
 
         return stream
