@@ -4,7 +4,7 @@ Created on 29 Jun 2010
 
 @author: Pontus Enmark <pontus.enmark@logica.com>
 '''
-from pkg_resources import resource_listdir, resource_filename
+from pkg_resources import resource_filename
 from sourcesharingplugin.sourcesharer import SharingSystem
 from trac.tests.notification import parse_smtp_message, SMTPThreadedServer
 from trac.test import EnvironmentStub, MockPerm
@@ -112,7 +112,7 @@ class SharingSystemTestCase(unittest.TestCase):
             subject = to_unicode(subject)
             for body in bodies:
                 body = to_unicode(body)
-                mail = self.sharesys.send_as_email("anonymous",
+                self.sharesys.send_as_email("anonymous",
                                                    (u'Pöntus Enmärk',
                                                     'pontus.enmark@logica.com'),
                                                    [(u'Pontus Enmark',
