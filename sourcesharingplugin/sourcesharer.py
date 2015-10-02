@@ -34,6 +34,7 @@ Created on 17 Jun 2010
 
 @author: enmarkp
 '''
+from tempfile import mkstemp
 from autocompleteplugin.api import IAutoCompleteUser
 from trac.config import Option
 from trac.web.chrome import Chrome, add_ctxtnav
@@ -42,6 +43,7 @@ from trac.test import Mock, MockPerm
 from trac.web.href import Href
 from trac.mimeview import Context
 from trac.wiki.formatter import HtmlFormatter
+from genshi.template import MarkupTemplate
 from trac.web.api import ITemplateStreamFilter, IRequestHandler
 from trac.web.chrome import ITemplateProvider, add_stylesheet, add_javascript,\
     add_warning, add_notice
@@ -52,7 +54,7 @@ from trac.resource import Resource
 from trac.versioncontrol.api import RepositoryManager
 from trac.util.translation import _
 from trac.util.presentation import to_json
-from trac.util.text import exception_to_unicode
+from trac.util.text import to_unicode, exception_to_unicode
 from pkg_resources import resource_filename
 from genshi.template.loader import TemplateLoader
 from genshi.filters.transform import Transformer
@@ -60,20 +62,20 @@ from genshi.builder import tag
 from trac.notification import EMAIL_LOOKALIKE_PATTERN
 from trac.versioncontrol.svn_fs import SvnCachedRepository, SubversionRepository
 try:
-    from email.utils import formatdate
+    from email.utils import formataddr, formatdate
     from email.mime.base import MIMEBase
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
     from email.encoders import encode_base64
-    from email.charset import Charset, QP, BASE64
+    from email.charset import Charset, QP, BASE64, SHORTEST
 except ImportError:
     # Python 2.4
-    from email.Utils import formatdate
+    from email.Utils import formataddr, formatdate
     from email.MIMEMultipart import MIMEMultipart
     from email.MIMEBase import MIMEBase
     from email.Encoders import encode_base64
     from email.MIMEText import MIMEText
-    from email.Charset import Charset, QP, BASE64
+    from email.Charset import Charset, QP, BASE64, SHORTEST
 try:
     # Prefer announcer interface
     from announcer.distributors.mail import EmailDistributor as Distributor
